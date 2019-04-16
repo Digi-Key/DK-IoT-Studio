@@ -1,0 +1,17 @@
+{
+  "name": "EELBuilder",
+  "version": "0.0.5",
+  "description": "Utility for generating and modifying EELs",
+  "author": "Atmosphere IoT Corp.",
+  "url": "https://atmosphereiot.com",
+  "email": "email@atmosphereiot.com",
+  "dependencies": {
+    "eol": "^0.9.1",
+    "minimist": "latest",
+    "mkdirp": "latest",
+    "walk-sync": "latest"
+  },
+  "scripts": {
+    "start": "node eelbuilder.js"
+  }
+}
