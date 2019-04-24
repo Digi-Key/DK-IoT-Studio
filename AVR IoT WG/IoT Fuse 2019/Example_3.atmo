@@ -1,0 +1,1190 @@
+{
+  "name": "Example_3",
+  "createVersion": "2017-08-12",
+  "description": "New Project",
+  "lastModified": "2019-04-23T02:36:59.259Z",
+  "created": "2019-04-23T02:36:59.259Z",
+  "meta": {
+    "projectTypeName": "AVR IoT WG",
+    "projectTypeId": "AvrIoT"
+  },
+  "planes": {
+    "AVR-IoT WG": {
+      "type": "avriot",
+      "compilerVersion": "latest",
+      "variants": [],
+      "meta": {},
+      "elements": [
+        {
+          "name": "Interval",
+          "type": "EmbeddedInterval",
+          "variants": [
+            "embedded",
+            "triggers",
+            "abilities",
+            "properties",
+            "variables"
+          ],
+          "properties": {
+            "errorData": {},
+            "code": {
+              "trigger": "\treturn ATMO_Status_Success;",
+              "setup": "\n\tATMO_INTERVAL_Handle_t intervalHandle;\n    ATMO_INTERVAL_AddAbilityInterval(\n\t\tATMO_PROPERTY(Interval, instance), \n\t\tATMO_ABILITY(Interval, interval), \n\t\tATMO_PROPERTY(Interval, time), \n\t\t&intervalHandle\n\t);\n\t\n\treturn ATMO_Status_Success;\n\t",
+              "interval": "\treturn ATMO_Status_Success;"
+            },
+            "variables": {},
+            "embeddedPropertyConversions": {},
+            "codeUserChanged": {
+              "setup": false,
+              "interval": false
+            },
+            "instance": "ATMO_DRIVERINSTANCE_INTERVAL_INTERVAL1",
+            "time": "500"
+          },
+          "meta": {
+            "editorX": 100,
+            "editorY": 0,
+            "lastTrigger": "interval"
+          },
+          "triggers": {
+            "triggered": [],
+            "interval": [
+              {
+                "mapping": {},
+                "targetOrder": [],
+                "targetElement": "GPIOPin",
+                "targetAbility": "toggle"
+              },
+              {
+                "mapping": {},
+                "targetOrder": [],
+                "targetElement": "TEMT6000AmbientLight",
+                "targetAbility": "readAmbientLight"
+              },
+              {
+                "mapping": {},
+                "targetOrder": [],
+                "targetElement": "ADCPin",
+                "targetAbility": "readRaw"
+              }
+            ]
+          },
+          "interruptAbilities": {
+            "trigger": false,
+            "setup": false,
+            "interval": true
+          },
+          "abilities": [
+            {
+              "name": "trigger",
+              "triggers": [
+                "triggered"
+              ]
+            },
+            {
+              "name": "setup",
+              "triggers": []
+            },
+            {
+              "name": "interval",
+              "triggers": [
+                "interval"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "GPIOPin",
+          "type": "EmbeddedGPIOPin",
+          "variants": [
+            "embedded",
+            "triggers",
+            "abilities",
+            "properties",
+            "variables"
+          ],
+          "properties": {
+            "errorData": {},
+            "code": {
+              "trigger": "\treturn ATMO_Status_Success;",
+              "setup": "\n\tATMO_GPIO_Config_t config;\n\tconfig.pinMode = ATMO_PROPERTY(GPIOPin, mode);\n\tconfig.initialState = ATMO_PROPERTY(GPIOPin, state);\n\tATMO_GPIO_SetPinConfiguration(ATMO_PROPERTY(GPIOPin, instance), ATMO_PROPERTY(GPIOPin, pin), &config);\n\n\t#if ATMO_PROPERTY(GPIOPin, interruptEnabled) == true\n\t\tATMO_GPIO_RegisterInterruptCallback(\n\t\t\tATMO_PROPERTY(GPIOPin, instance), \n\t\t\tATMO_PROPERTY(GPIOPin, pin), \n\t\t\tATMO_PROPERTY(GPIOPin, interruptMode), \n\t\t\tATMO_INTERRUPT(GPIOPin, interrupt));\n\t#endif\n\t\n\treturn ATMO_Status_Success;\n\t",
+              "setState": "\n\tbool state;\n\tATMO_GetBool(in, &state);\n\tATMO_GPIO_SetPinState(ATMO_PROPERTY(GPIOPin, instance), ATMO_PROPERTY(GPIOPin, pin), (ATMO_GPIO_PinState_t)state);\n\treturn ATMO_Status_Success;\n\t",
+              "setPinHigh": "\n\tATMO_GPIO_SetPinState(ATMO_PROPERTY(GPIOPin, instance), ATMO_PROPERTY(GPIOPin, pin), ATMO_GPIO_PinState_High);\n\treturn ATMO_Status_Success;\n\t",
+              "setPinLow": "\n\tATMO_GPIO_SetPinState(ATMO_PROPERTY(GPIOPin, instance), ATMO_PROPERTY(GPIOPin, pin), ATMO_GPIO_PinState_Low);\n\treturn ATMO_Status_Success;\n\t",
+              "read": "\n\tATMO_CreateValueBool(out, ATMO_GPIO_Read(ATMO_PROPERTY(GPIOPin, instance), ATMO_PROPERTY(GPIOPin, pin)));\n\treturn ATMO_Status_Success;\n\t",
+              "toggle": "\n\tATMO_GPIO_Toggle(ATMO_PROPERTY(GPIOPin, instance), ATMO_PROPERTY(GPIOPin, pin));\n\treturn ATMO_Status_Success;\n\t",
+              "interrupt": "\n\tATMO_CreateValueCopy(out, in);\n\treturn ATMO_Status_Success;\n\t"
+            },
+            "variables": {},
+            "embeddedPropertyConversions": {},
+            "codeUserChanged": {
+              "setup": false,
+              "setState": false,
+              "setPinHigh": false,
+              "setPinLow": false,
+              "read": false,
+              "toggle": false,
+              "interrupt": false
+            },
+            "instance": "ATMO_DRIVERINSTANCE_GPIO_GPIO1",
+            "pin": "P_PWM",
+            "mode": "ATMO_GPIO_PinMode_Output_PushPull",
+            "state": "ATMO_GPIO_PinState_High",
+            "interruptEnabled": false,
+            "interruptMode": "ATMO_GPIO_InterruptTrigger_None"
+          },
+          "meta": {
+            "editorX": 200,
+            "editorY": 0,
+            "lastTrigger": "interrupt"
+          },
+          "triggers": {
+            "triggered": [],
+            "stateSet": [],
+            "read": [],
+            "toggled": [],
+            "interrupt": []
+          },
+          "interruptAbilities": {
+            "trigger": false,
+            "setup": false,
+            "setState": false,
+            "setPinHigh": false,
+            "setPinLow": false,
+            "read": false,
+            "toggle": false,
+            "interrupt": true
+          },
+          "abilities": [
+            {
+              "name": "trigger",
+              "triggers": [
+                "triggered"
+              ]
+            },
+            {
+              "name": "setup",
+              "triggers": []
+            },
+            {
+              "name": "setState",
+              "triggers": [
+                "stateSet"
+              ]
+            },
+            {
+              "name": "setPinHigh",
+              "triggers": [
+                "stateSet"
+              ]
+            },
+            {
+              "name": "setPinLow",
+              "triggers": [
+                "stateSet"
+              ]
+            },
+            {
+              "name": "read",
+              "triggers": [
+                "read"
+              ]
+            },
+            {
+              "name": "toggle",
+              "triggers": [
+                "toggled"
+              ]
+            },
+            {
+              "name": "interrupt",
+              "triggers": [
+                "interrupt"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "TEMT6000AmbientLight",
+          "type": "EmbeddedTemt6000",
+          "variants": [
+            "embedded",
+            "triggers",
+            "abilities",
+            "properties",
+            "variables"
+          ],
+          "properties": {
+            "errorData": {},
+            "code": {
+              "trigger": "\treturn ATMO_Status_Success;",
+              "setup": "    return ATMO_Status_Success;",
+              "readAmbientLight": "int32_t voltage = 0;\r\nATMO_ADC_Status_t status = ATMO_ADC_Read(ATMO_PROPERTY(TEMT6000AmbientLight, adcInstance), ATMO_PROPERTY(TEMT6000AmbientLight, adcPin), ATMO_ADC_VoltageUnits_MilliVolts, &voltage, 1);\r\n\r\nif(status != ATMO_ADC_Status_Success)\r\n{\r\n    return ATMO_Status_Fail;\r\n}\r\n\r\nfloat lux = (voltage / 10.0) * 2.0;\r\nATMO_CreateValueFloat(out, lux);\r\nreturn (status == ATMO_ADC_Status_Success) ? ATMO_Status_Success : ATMO_Status_Fail;",
+              "readAmbientLightRaw": "int32_t voltage = 0;\r\nATMO_ADC_Status_t status = ATMO_ADC_ReadRaw(ATMO_PROPERTY(TEMT6000AmbientLight, adcInstance), ATMO_PROPERTY(TEMT6000AmbientLight, adcPin), &voltage, 1);\r\n\r\nif(status != ATMO_ADC_Status_Success)\r\n{\r\n    return ATMO_Status_Fail;\r\n}\r\n\r\nATMO_CreateValueInt(out, voltage);\r\nreturn ATMO_Status_Success;"
+            },
+            "variables": {},
+            "embeddedPropertyConversions": {},
+            "codeUserChanged": {
+              "setup": false,
+              "readAmbientLight": false,
+              "readAmbientLightRaw": false
+            },
+            "adcInstance": "ATMO_DRIVERINSTANCE_ADC_ADC1",
+            "adcPin": "P_LIGHT_SENS",
+            "pullDownValue": 10000
+          },
+          "meta": {
+            "editorX": 197,
+            "editorY": 91,
+            "lastTrigger": "ambientLightRead"
+          },
+          "triggers": {
+            "triggered": [],
+            "ambientLightRead": [
+              {
+                "mapping": {},
+                "targetOrder": [],
+                "targetElement": "LightEvent",
+                "targetAbility": "sendEvent"
+              }
+            ],
+            "ambientLightRawRead": []
+          },
+          "interruptAbilities": {
+            "trigger": false,
+            "setup": false,
+            "readAmbientLight": false,
+            "readAmbientLightRaw": false
+          },
+          "abilities": [
+            {
+              "name": "trigger",
+              "triggers": [
+                "triggered"
+              ]
+            },
+            {
+              "name": "setup",
+              "triggers": []
+            },
+            {
+              "name": "readAmbientLight",
+              "triggers": [
+                "ambientLightRead"
+              ]
+            },
+            {
+              "name": "readAmbientLightRaw",
+              "triggers": [
+                "ambientLightRawRead"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "LightEvent",
+          "type": "EmbeddedCloudEvent",
+          "variants": [
+            "embedded",
+            "triggers",
+            "abilities",
+            "properties",
+            "variables",
+            "wifi"
+          ],
+          "properties": {
+            "errorData": {},
+            "code": {
+              "trigger": "\treturn ATMO_Status_Success;",
+              "setup": "\n    \n\t\n\treturn ATMO_Status_Success;\n    ",
+              "sendEvent": "\n    \n\tif( ATMO_CLOUD_SendEvent(ATMO_PROPERTY(LightEvent, instance), ATMO_ELEMENT_NAME(LightEvent), in, 100) != ATMO_CLOUD_Status_Success )\n    {  \n        return ATMO_Status_Fail;\n    }\n\n\treturn ATMO_Status_Success;\n\t"
+            },
+            "variables": {},
+            "embeddedPropertyConversions": {},
+            "codeUserChanged": {
+              "setup": false,
+              "sendEvent": false
+            },
+            "instance": "ATMO_DRIVERINSTANCE_CLOUD_CLOUD1"
+          },
+          "meta": {
+            "editorX": 297,
+            "editorY": 91,
+            "lastTrigger": "eventSent"
+          },
+          "triggers": {
+            "triggered": [],
+            "eventSent": []
+          },
+          "interruptAbilities": {
+            "trigger": false,
+            "setup": false,
+            "sendEvent": false
+          },
+          "abilities": [
+            {
+              "name": "trigger",
+              "triggers": [
+                "triggered"
+              ]
+            },
+            {
+              "name": "setup",
+              "triggers": []
+            },
+            {
+              "name": "sendEvent",
+              "triggers": [
+                "eventSent"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Interval1",
+          "type": "EmbeddedInterval",
+          "variants": [
+            "embedded",
+            "triggers",
+            "abilities",
+            "properties",
+            "variables"
+          ],
+          "properties": {
+            "errorData": {},
+            "code": {
+              "trigger": "\treturn ATMO_Status_Success;",
+              "setup": "\n\tATMO_INTERVAL_Handle_t intervalHandle;\n    ATMO_INTERVAL_AddAbilityInterval(\n\t\tATMO_PROPERTY(Interval1, instance), \n\t\tATMO_ABILITY(Interval1, interval), \n\t\tATMO_PROPERTY(Interval1, time), \n\t\t&intervalHandle\n\t);\n\t\n\treturn ATMO_Status_Success;\n\t",
+              "interval": "\treturn ATMO_Status_Success;"
+            },
+            "variables": {},
+            "embeddedPropertyConversions": {},
+            "codeUserChanged": {
+              "setup": false,
+              "interval": false
+            },
+            "instance": "ATMO_DRIVERINSTANCE_INTERVAL_INTERVAL1",
+            "time": "5000"
+          },
+          "meta": {
+            "editorX": 105,
+            "editorY": 231,
+            "lastTrigger": "interval"
+          },
+          "triggers": {
+            "triggered": [],
+            "interval": [
+              {
+                "mapping": {},
+                "targetOrder": [],
+                "targetElement": "MCP9808Temperature",
+                "targetAbility": "readAmbientTemperature"
+              }
+            ]
+          },
+          "interruptAbilities": {
+            "trigger": false,
+            "setup": false,
+            "interval": true
+          },
+          "abilities": [
+            {
+              "name": "trigger",
+              "triggers": [
+                "triggered"
+              ]
+            },
+            {
+              "name": "setup",
+              "triggers": []
+            },
+            {
+              "name": "interval",
+              "triggers": [
+                "interval"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "MCP9808Temperature",
+          "type": "EmbeddedMCP9808",
+          "variants": [
+            "embedded",
+            "triggers",
+            "abilities",
+            "properties",
+            "variables"
+          ],
+          "properties": {
+            "errorData": {},
+            "code": {
+              "trigger": "\treturn ATMO_Status_Success;",
+              "setup": "    if (!ATMO_MCP9808_Init(ATMO_PROPERTY(MCP9808Temperature, i2cInstance), ATMO_PROPERTY(MCP9808Temperature, i2cAddress)))\r\n    {\r\n        return ATMO_Status_Fail;\r\n    }\r\n    return ATMO_Status_Success;",
+              "readAmbientTemperature": "    float temp = 0;\r\n\r\n    if (!ATMO_MCP9808_ReadTemperature(&temp))\r\n    {\r\n        return ATMO_Status_Fail;\r\n    }\r\n\r\n    ATMO_CreateValueFloat(out, temp);\r\n    return ATMO_Status_Success;"
+            },
+            "variables": {},
+            "embeddedPropertyConversions": {},
+            "codeUserChanged": {
+              "setup": false,
+              "readAmbientTemperature": false
+            },
+            "i2cInstance": "ATMO_DRIVERINSTANCE_I2C_I2C1",
+            "i2cAddress": "0x18"
+          },
+          "meta": {
+            "editorX": 200,
+            "editorY": 231,
+            "lastTrigger": "ambientTemperatureRead"
+          },
+          "triggers": {
+            "triggered": [],
+            "ambientTemperatureRead": [
+              {
+                "mapping": {},
+                "targetOrder": [],
+                "targetElement": "TempEvent",
+                "targetAbility": "sendEvent"
+              }
+            ]
+          },
+          "interruptAbilities": {
+            "trigger": false,
+            "setup": false,
+            "readAmbientTemperature": false
+          },
+          "abilities": [
+            {
+              "name": "trigger",
+              "triggers": [
+                "triggered"
+              ]
+            },
+            {
+              "name": "setup",
+              "triggers": []
+            },
+            {
+              "name": "readAmbientTemperature",
+              "triggers": [
+                "ambientTemperatureRead"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "TempEvent",
+          "type": "EmbeddedCloudEvent",
+          "variants": [
+            "embedded",
+            "triggers",
+            "abilities",
+            "properties",
+            "variables",
+            "wifi"
+          ],
+          "properties": {
+            "errorData": {},
+            "code": {
+              "trigger": "\treturn ATMO_Status_Success;",
+              "setup": "\n    \n\t\n\treturn ATMO_Status_Success;\n    ",
+              "sendEvent": "\n    \n\tif( ATMO_CLOUD_SendEvent(ATMO_PROPERTY(TempEvent, instance), ATMO_ELEMENT_NAME(TempEvent), in, 100) != ATMO_CLOUD_Status_Success )\n    {  \n        return ATMO_Status_Fail;\n    }\n\n\treturn ATMO_Status_Success;\n\t"
+            },
+            "variables": {},
+            "embeddedPropertyConversions": {},
+            "codeUserChanged": {
+              "setup": false,
+              "sendEvent": false
+            },
+            "instance": "ATMO_DRIVERINSTANCE_CLOUD_CLOUD1"
+          },
+          "meta": {
+            "editorX": 303,
+            "editorY": 232,
+            "lastTrigger": "eventSent"
+          },
+          "triggers": {
+            "triggered": [],
+            "eventSent": []
+          },
+          "interruptAbilities": {
+            "trigger": false,
+            "setup": false,
+            "sendEvent": false
+          },
+          "abilities": [
+            {
+              "name": "trigger",
+              "triggers": [
+                "triggered"
+              ]
+            },
+            {
+              "name": "setup",
+              "triggers": []
+            },
+            {
+              "name": "sendEvent",
+              "triggers": [
+                "eventSent"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "ADCPin",
+          "type": "EmbeddedADCPin",
+          "variants": [
+            "embedded",
+            "triggers",
+            "abilities",
+            "properties",
+            "variables",
+            "adc"
+          ],
+          "properties": {
+            "errorData": {},
+            "code": {
+              "trigger": "\treturn ATMO_Status_Success;",
+              "setup": "\n\treturn ATMO_Status_Success;\n\t",
+              "readRaw": "\n\t\n\tATMO_CreateValueInt(out, 0);\n\t\n\tATMO_ADC_ReadRaw(\n\t\tATMO_PROPERTY(ADCPin, instance), \n\t\tATMO_PROPERTY(ADCPin, pin), \n\t\t(int32_t*)out->data, \n\t\tATMO_PROPERTY(ADCPin, numberOfSamples));\n\t\n\treturn ATMO_Status_Success;\n\t",
+              "readVoltage": "\n\t\n\tATMO_CreateValueInt(out, 0);\n\t\n\tATMO_ADC_Read(\n\t\tATMO_PROPERTY(ADCPin, instance), \n\t\tATMO_PROPERTY(ADCPin, pin),\n\t\tATMO_ADC_VoltageUnits_MilliVolts,\n\t\t(int32_t*)out->data, \n\t\tATMO_PROPERTY(ADCPin, numberOfSamples));\n\t\n\treturn ATMO_Status_Success;\n\t"
+            },
+            "variables": {},
+            "embeddedPropertyConversions": {},
+            "codeUserChanged": {
+              "setup": false,
+              "readRaw": false,
+              "readVoltage": false
+            },
+            "instance": "ATMO_DRIVERINSTANCE_ADC_ADC1",
+            "pin": "P_AN",
+            "numberOfSamples": 1
+          },
+          "meta": {
+            "editorX": 197,
+            "editorY": 165,
+            "lastTrigger": "rawRead"
+          },
+          "triggers": {
+            "triggered": [],
+            "rawRead": [
+              {
+                "mapping": {},
+                "targetOrder": [],
+                "targetElement": "ADCEvent",
+                "targetAbility": "sendEvent"
+              }
+            ],
+            "voltageRead": []
+          },
+          "interruptAbilities": {
+            "trigger": false,
+            "setup": false,
+            "readRaw": false,
+            "readVoltage": false
+          },
+          "abilities": [
+            {
+              "name": "trigger",
+              "triggers": [
+                "triggered"
+              ]
+            },
+            {
+              "name": "setup",
+              "triggers": []
+            },
+            {
+              "name": "readRaw",
+              "triggers": [
+                "rawRead"
+              ]
+            },
+            {
+              "name": "readVoltage",
+              "triggers": [
+                "voltageRead"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "ADCEvent",
+          "type": "EmbeddedCloudEvent",
+          "variants": [
+            "embedded",
+            "triggers",
+            "abilities",
+            "properties",
+            "variables",
+            "wifi"
+          ],
+          "properties": {
+            "errorData": {},
+            "code": {
+              "trigger": "\treturn ATMO_Status_Success;",
+              "setup": "\n    \n\t\n\treturn ATMO_Status_Success;\n    ",
+              "sendEvent": "\n    \n\tif( ATMO_CLOUD_SendEvent(ATMO_PROPERTY(ADCEvent, instance), ATMO_ELEMENT_NAME(ADCEvent), in, 100) != ATMO_CLOUD_Status_Success )\n    {  \n        return ATMO_Status_Fail;\n    }\n\n\treturn ATMO_Status_Success;\n\t"
+            },
+            "variables": {},
+            "embeddedPropertyConversions": {},
+            "codeUserChanged": {
+              "setup": false,
+              "sendEvent": false
+            },
+            "instance": "ATMO_DRIVERINSTANCE_CLOUD_CLOUD1"
+          },
+          "meta": {
+            "editorX": 301,
+            "editorY": 165,
+            "lastTrigger": "eventSent"
+          },
+          "triggers": {
+            "triggered": [],
+            "eventSent": []
+          },
+          "interruptAbilities": {
+            "trigger": false,
+            "setup": false,
+            "sendEvent": false
+          },
+          "abilities": [
+            {
+              "name": "trigger",
+              "triggers": [
+                "triggered"
+              ]
+            },
+            {
+              "name": "setup",
+              "triggers": []
+            },
+            {
+              "name": "sendEvent",
+              "triggers": [
+                "eventSent"
+              ]
+            }
+          ]
+        }
+      ],
+      "libraries": {
+        "temt6000": {
+          "libName": "temt6000",
+          "manufacturer": "Digikey",
+          "description": "Ambient Light Sensor",
+          "type": "Ambient Light Sensor",
+          "icon": "",
+          "image": "",
+          "version": "",
+          "eelVersion": "3",
+          "shoppingCartLinks": {
+            "digikey": {
+              "links": {
+                "info": "https://www.digikey.com/short/p3mw3b"
+              },
+              "cartData": {
+                "part": "1568-1048-ND",
+                "source": "dkstudio",
+                "qty": "1"
+              }
+            }
+          },
+          "requires": [
+            "embedded",
+            "adc",
+            "fpmath"
+          ],
+          "elements": [
+            {
+              "name": "TEMT6000AmbientLight",
+              "type": "EmbeddedTemt6000",
+              "icon": "EmbeddedAmbientLight.svg",
+              "helpPageHref": "https://developer.atmosphereiot.com/documents/elements/temt6000element.html",
+              "defaultAbility": "readAmbientLight",
+              "defaultTrigger": "ambientLightRead",
+              "hidden": false,
+              "abilities": [
+                {
+                  "name": "setup",
+                  "hidden": true,
+                  "code": "    return ATMO_Status_Success;"
+                },
+                {
+                  "name": "readAmbientLight",
+                  "triggers": [
+                    "ambientLightRead"
+                  ],
+                  "code": "int32_t voltage = 0;\r\nATMO_ADC_Status_t status = ATMO_ADC_Read(ATMO_PROPERTY(undefined, adcInstance), ATMO_PROPERTY(undefined, adcPin), ATMO_ADC_VoltageUnits_MilliVolts, &voltage, 1);\r\n\r\nif(status != ATMO_ADC_Status_Success)\r\n{\r\n    return ATMO_Status_Fail;\r\n}\r\n\r\nfloat lux = (voltage / 10.0) * 2.0;\r\nATMO_CreateValueFloat(out, lux);\r\nreturn (status == ATMO_ADC_Status_Success) ? ATMO_Status_Success : ATMO_Status_Fail;"
+                },
+                {
+                  "name": "readAmbientLightRaw",
+                  "triggers": [
+                    "ambientLightRawRead"
+                  ],
+                  "code": "int32_t voltage = 0;\r\nATMO_ADC_Status_t status = ATMO_ADC_ReadRaw(ATMO_PROPERTY(undefined, adcInstance), ATMO_PROPERTY(undefined, adcPin), &voltage, 1);\r\n\r\nif(status != ATMO_ADC_Status_Success)\r\n{\r\n    return ATMO_Status_Fail;\r\n}\r\n\r\nATMO_CreateValueInt(out, voltage);\r\nreturn ATMO_Status_Success;"
+                }
+              ],
+              "properties": [
+                {
+                  "name": "adcInstance",
+                  "input": "driverInstance",
+                  "driverType": "adc"
+                },
+                {
+                  "name": "adcPin",
+                  "input": "number",
+                  "value": 0
+                },
+                {
+                  "name": "pullDownValue",
+                  "input": "number",
+                  "value": "10000"
+                }
+              ],
+              "triggers": [],
+              "variables": [],
+              "language": {
+                "en-US": {
+                  "EmbeddedTemt6000": "TEMT6000",
+                  "adcInstance": "ADC Driver Instance",
+                  "adcPin": "ADC Pin",
+                  "readAmbientLight": "Read Ambient Light (lux)",
+                  "ambientLightRead": "Ambient Light Read (lux)",
+                  "readAmbientLightRaw": "Read Ambient Light (raw)",
+                  "ambientLightRawRead": "Ambient Light Read (raw)"
+                }
+              }
+            }
+          ],
+          "files": {},
+          "md5": "b1d83ec4eb21f5a7feaf0ba7760837ee"
+        },
+        "mcp9808": {
+          "libName": "mcp9808",
+          "manufacturer": "Microchip",
+          "description": "Temperature Sensor",
+          "type": "Temperature Sensor",
+          "icon": "",
+          "image": "",
+          "version": "",
+          "eelVersion": "3",
+          "shoppingCartLinks": {
+            "digikey": {
+              "links": {
+                "info": "https://www.digikey.com/short/p3hwmm"
+              },
+              "cartData": {
+                "part": "1528-1032-ND",
+                "partid": "1782",
+                "source": "dkstudio",
+                "qty": "1"
+              }
+            }
+          },
+          "requires": [
+            "embedded",
+            "i2c",
+            "fpmath"
+          ],
+          "elements": [
+            {
+              "name": "MCP9808Temperature",
+              "type": "EmbeddedMCP9808",
+              "icon": "EmbeddedTemperature.svg",
+              "defaultAbility": "readAmbientTemperature",
+              "defaultTrigger": "ambientTemperatureRead",
+              "hidden": false,
+              "helpPageHref": "https://developer.atmosphereiot.com/documents/elements/texasinstrumentstmp006element.html",
+              "abilities": [
+                {
+                  "name": "setup",
+                  "hidden": true,
+                  "code": "    if (!ATMO_MCP9808_Init(ATMO_PROPERTY(undefined, i2cInstance), ATMO_PROPERTY(undefined, i2cAddress)))\r\n    {\r\n        return ATMO_Status_Fail;\r\n    }\r\n    return ATMO_Status_Success;"
+                },
+                {
+                  "name": "readAmbientTemperature",
+                  "triggers": [
+                    "ambientTemperatureRead"
+                  ],
+                  "code": "    float temp = 0;\r\n\r\n    if (!ATMO_MCP9808_ReadTemperature(&temp))\r\n    {\r\n        return ATMO_Status_Fail;\r\n    }\r\n\r\n    ATMO_CreateValueFloat(out, temp);\r\n    return ATMO_Status_Success;"
+                }
+              ],
+              "properties": [
+                {
+                  "name": "i2cInstance",
+                  "input": "driverInstance",
+                  "driverType": "i2c"
+                },
+                {
+                  "name": "i2cAddress",
+                  "input": "select",
+                  "inputOptions": [
+                    "0x18",
+                    "0x19",
+                    "0x1A",
+                    "0x1B",
+                    "0x1C",
+                    "0x1D",
+                    "0x1E",
+                    "0x1F"
+                  ],
+                  "value": "0x18"
+                }
+              ],
+              "triggers": [],
+              "variables": [],
+              "language": {
+                "en-US": {
+                  "EmbeddedMCP9808": "MCP9808",
+                  "i2cInstance": "I2C Driver Instance",
+                  "i2cAddress": "I2C Address",
+                  "readAmbientTemperature": "Read Ambient Temperature (C)",
+                  "ambientTemperatureRead": "Ambient Temperature Read"
+                }
+              }
+            }
+          ],
+          "files": {
+            "common": {
+              "headers": {
+                "mcp9808.h": "#ifndef __ATMO_MCP9808_H_\r\n#define __ATMO_MCP9808_H_\r\n\r\n#include \"../atmo/core.h\"\r\n#include \"../app_src/atmosphere_platform.h\"\r\n\r\nbool ATMO_MCP9808_Init(ATMO_DriverInstanceHandle_t i2cHandle, uint8_t i2cAddr);\r\n\r\nbool ATMO_MCP9808_ReadTemperature(float *temperatureC);\r\n\r\n#endif"
+              },
+              "objects": {
+                "mcp9808.c": "#include \"mcp9808.h\"\r\n#include \"../i2c/i2c.h\"\r\n\r\nstatic bool _ATMO_MCP9808_Initialized = false;\r\nstatic ATMO_DriverInstanceHandle_t _ATMO_MCP9808_I2CInstance = 0;\r\nstatic uint8_t _ATMO_MCP9808_Addr = 0;\r\n\r\n#define MCP9808_REG_CONFIG 0x01 ///< MCP9808 config register\r\n\r\n#define MCP9808_REG_CONFIG_SHUTDOWN 0x0100   ///< shutdown config\r\n#define MCP9808_REG_CONFIG_CRITLOCKED 0x0080 ///< critical trip lock\r\n#define MCP9808_REG_CONFIG_WINLOCKED 0x0040  ///< alarm window lock\r\n#define MCP9808_REG_CONFIG_INTCLR 0x0020     ///< interrupt clear\r\n#define MCP9808_REG_CONFIG_ALERTSTAT 0x0010  ///< alert output status\r\n#define MCP9808_REG_CONFIG_ALERTCTRL 0x0008  ///< alert output control\r\n#define MCP9808_REG_CONFIG_ALERTSEL 0x0004   ///< alert output select\r\n#define MCP9808_REG_CONFIG_ALERTPOL 0x0002   ///< alert output polarity\r\n#define MCP9808_REG_CONFIG_ALERTMODE 0x0001  ///< alert output mode\r\n\r\n#define MCP9808_REG_UPPER_TEMP 0x02   ///< upper alert boundary\r\n#define MCP9808_REG_LOWER_TEMP 0x03   ///< lower alert boundery\r\n#define MCP9808_REG_CRIT_TEMP 0x04    ///< critical temperature\r\n#define MCP9808_REG_AMBIENT_TEMP 0x05 ///< ambient temperature\r\n#define MCP9808_REG_MANUF_ID 0x06     ///< manufacture ID\r\n#define MCP9808_REG_DEVICE_ID 0x07    ///< device ID\r\n#define MCP9808_REG_RESOLUTION 0x08   ///< resolutin\r\n\r\nstatic bool _ATMO_MCP9808_Read2ByteReg(uint8_t regAddr, uint16_t *data)\r\n{\r\n    uint8_t val[2] = {0};\r\n\r\n    ATMO_I2C_Status_t status = ATMO_I2C_MasterRead(_ATMO_MCP9808_I2CInstance, _ATMO_MCP9808_Addr, &regAddr, 1, (uint8_t *)val, 2, 1000);\r\n\r\n    if(status != ATMO_I2C_Status_Success)\r\n    {\r\n        return false;\r\n    }\r\n\r\n    (*data) = ((uint16_t)val[0]) << 8 | val[1]; // Swap the bytes\r\n\r\n    return true;\r\n}\r\n\r\nstatic bool _ATMO_MCP9808_Write2ByteReg(uint8_t regAddr, uint16_t data)\r\n{\r\n    uint8_t writeData[2] = {((data >> 8) & 0xFF),  ((data & 0xFF) << 8)};\r\n\r\n    ATMO_I2C_Status_t status = ATMO_I2C_MasterWrite(_ATMO_MCP9808_I2CInstance, _ATMO_MCP9808_Addr, &regAddr, 1, (uint8_t *)writeData, 2, 1000);\r\n\r\n    return status == ATMO_I2C_Status_Success;\r\n}\r\n\r\nbool ATMO_MCP9808_Init(ATMO_DriverInstanceHandle_t i2cHandle, uint8_t i2cAddr)\r\n{\r\n    _ATMO_MCP9808_I2CInstance = i2cHandle;\r\n    _ATMO_MCP9808_Addr = i2cAddr;\r\n\r\n    uint16_t manufId = 0;\r\n    if (!_ATMO_MCP9808_Read2ByteReg(MCP9808_REG_MANUF_ID, &manufId))\r\n    {\r\n        ATMO_PLATFORM_DebugPrint(\"Error reading Man Id\\r\\n\");\r\n        return false;\r\n    }\r\n\r\n    if (manufId != 0x0054)\r\n    {\r\n        ATMO_PLATFORM_DebugPrint(\"Manufacturer ID Mismtach (Rcv %04X Expect %04X)\\r\\n\", manufId, 0x0054);\r\n        return false;\r\n    }\r\n\r\n    uint16_t devId = 0;\r\n    if (!_ATMO_MCP9808_Read2ByteReg(MCP9808_REG_DEVICE_ID, &devId))\r\n    {\r\n        ATMO_PLATFORM_DebugPrint(\"Error reading Dev Id\\r\\n\");\r\n        return false;\r\n    }\r\n\r\n    if (devId != 0x0400)\r\n    {\r\n        ATMO_PLATFORM_DebugPrint(\"Dev ID Mismtach (Rcv %04X Expect %04X)\\r\\n\", devId, 0x0400);\r\n        return false;\r\n    }\r\n\r\n    if (!_ATMO_MCP9808_Write2ByteReg(MCP9808_REG_CONFIG, 0x0))\r\n    {\r\n        ATMO_PLATFORM_DebugPrint(\"Error writing config\\r\\n\");\r\n        return false;\r\n    }\r\n\r\n    _ATMO_MCP9808_Initialized = true;\r\n    return true;\r\n}\r\n\r\nbool ATMO_MCP9808_ReadTemperature(float *temperatureC)\r\n{\r\n    if (!_ATMO_MCP9808_Initialized)\r\n    {\r\n        return false;\r\n    }\r\n\r\n    uint16_t rawTemp = 0;\r\n    if (!_ATMO_MCP9808_Read2ByteReg(MCP9808_REG_AMBIENT_TEMP, &rawTemp))\r\n    {\r\n        return false;\r\n    }\r\n\r\n    // From https://github.com/adafruit/Adafruit_MCP9808_Library/blob/master/Adafruit_MCP9808.cpp\r\n    float temp = rawTemp & 0x0FFF;\r\n    temp /= 16.0;\r\n    if (rawTemp & 0x1000)\r\n    {\r\n        temp -= 256;\r\n    }\r\n\r\n    *temperatureC = temp;\r\n    \r\n    return true;\r\n}"
+              }
+            }
+          },
+          "md5": "0d14921176f7b24ca25678d9ca8eaac1"
+        }
+      },
+      "drivers": {
+        "adc": [
+          {
+            "id": 0,
+            "name": "ATMO_DRIVERINSTANCE_ADC_ADC1"
+          }
+        ],
+        "ble": [],
+        "block": [
+          {
+            "id": 0,
+            "name": "ATMO_DRIVERINSTANCE_BLOCK_BLOCK1"
+          }
+        ],
+        "embeddedCloud": [
+          {
+            "id": 0,
+            "name": "ATMO_DRIVERINSTANCE_CLOUD_CLOUD1"
+          }
+        ],
+        "datetime": [],
+        "filesytem": [
+          {
+            "id": 0,
+            "name": "ATMO_DRIVERINSTANCE_FILESYSTEM_FILESYSTEM1"
+          }
+        ],
+        "gpio": [
+          {
+            "id": 0,
+            "name": "ATMO_DRIVERINSTANCE_GPIO_GPIO1"
+          }
+        ],
+        "http": [
+          {
+            "id": 0,
+            "name": "ATMO_DRIVERINSTANCE_HTTP_HTTP1",
+            "primary": true
+          }
+        ],
+        "i2c": [
+          {
+            "id": 0,
+            "name": "ATMO_DRIVERINSTANCE_I2C_I2C1",
+            "primary": true
+          }
+        ],
+        "interval": [
+          {
+            "id": 0,
+            "name": "ATMO_DRIVERINSTANCE_INTERVAL_INTERVAL1"
+          }
+        ],
+        "nfc": [],
+        "pwm": [
+          {
+            "id": 0,
+            "name": "ATMO_DRIVERINSTANCE_PWM_PWM1"
+          }
+        ],
+        "spi": [
+          {
+            "id": 0,
+            "name": "ATMO_DRIVERINSTANCE_SPI_SPI1"
+          }
+        ],
+        "uart": [
+          {
+            "id": 0,
+            "name": "ATMO_DRIVERINSTANCE_UART_UART1"
+          }
+        ],
+        "wifi": [
+          {
+            "id": 0,
+            "name": "ATMO_DRIVERINSTANCE_WIFI_WIFI1"
+          }
+        ]
+      },
+      "static": {
+        "header": "",
+        "footer": "",
+        "functions": {
+          "ATMO_Setup": {
+            "returnType": "void",
+            "code": "",
+            "arguments": []
+          }
+        }
+      }
+    },
+    "Application": {
+      "type": "app",
+      "compilerVersion": "latest",
+      "variants": [],
+      "meta": {
+        "appViewLayouts": {
+          "320": {
+            "560": true
+          }
+        }
+      },
+      "elements": []
+    },
+    "Cloud": {
+      "type": "cloud",
+      "compilerVersion": "latest",
+      "variants": [],
+      "meta": {},
+      "elements": [
+        {
+          "name": "LightEvent",
+          "type": "CloudEvent",
+          "variants": [
+            "cloud"
+          ],
+          "properties": {
+            "errorData": {},
+            "value": null,
+            "code": {
+              "trigger": "\treturn ATMO_Status_Success;",
+              "setup": "\n    \n\t\n\treturn ATMO_Status_Success;\n    ",
+              "sendEvent": "\n    \n\tif( ATMO_CLOUD_SendEvent(ATMO_PROPERTY(LightEvent, instance), ATMO_ELEMENT_NAME(LightEvent), in, 100) != ATMO_CLOUD_Status_Success )\n    {  \n        return ATMO_Status_Fail;\n    }\n\n\treturn ATMO_Status_Success;\n\t"
+            },
+            "variables": {},
+            "embeddedPropertyConversions": {},
+            "codeUserChanged": {
+              "setup": false,
+              "sendEvent": false
+            },
+            "instance": "ATMO_DRIVERINSTANCE_CLOUD_CLOUD1"
+          },
+          "meta": {
+            "editorX": 33,
+            "editorY": 7,
+            "lastTrigger": "eventReceived"
+          },
+          "triggers": {
+            "triggered": [],
+            "eventReceived": [
+              {
+                "mapping": {
+                  "value": {
+                    "code": "{\"Light LUX\":value}"
+                  }
+                },
+                "targetOrder": [
+                  "value"
+                ],
+                "targetElement": "LightStorage",
+                "targetAbility": "addData"
+              }
+            ]
+          },
+          "coupledElementName": "LightEvent",
+          "coupledElementPlaneName": "AVR-IoT WG"
+        },
+        {
+          "name": "TempEvent",
+          "type": "CloudEvent",
+          "variants": [
+            "cloud"
+          ],
+          "properties": {
+            "errorData": {},
+            "value": null,
+            "code": {
+              "trigger": "\treturn ATMO_Status_Success;",
+              "setup": "\n    \n\t\n\treturn ATMO_Status_Success;\n    ",
+              "sendEvent": "\n    \n\tif( ATMO_CLOUD_SendEvent(ATMO_PROPERTY(TempEvent, instance), ATMO_ELEMENT_NAME(TempEvent), in, 100) != ATMO_CLOUD_Status_Success )\n    {  \n        return ATMO_Status_Fail;\n    }\n\n\treturn ATMO_Status_Success;\n\t"
+            },
+            "variables": {},
+            "embeddedPropertyConversions": {},
+            "codeUserChanged": {
+              "setup": false,
+              "sendEvent": false
+            },
+            "instance": "ATMO_DRIVERINSTANCE_CLOUD_CLOUD1"
+          },
+          "meta": {
+            "editorX": 33,
+            "editorY": 93,
+            "lastTrigger": "eventReceived"
+          },
+          "triggers": {
+            "triggered": [],
+            "eventReceived": [
+              {
+                "mapping": {
+                  "value": {
+                    "code": "{Temperature:value}"
+                  }
+                },
+                "targetOrder": [
+                  "value"
+                ],
+                "targetElement": "TempStorage",
+                "targetAbility": "addData"
+              }
+            ]
+          },
+          "coupledElementName": "TempEvent",
+          "coupledElementPlaneName": "AVR-IoT WG"
+        },
+        {
+          "name": "LightStorage",
+          "type": "CloudStorage",
+          "variants": [
+            "cloud"
+          ],
+          "properties": {
+            "errorData": null,
+            "value": null
+          },
+          "meta": {
+            "editorX": 156,
+            "editorY": 5,
+            "lastTrigger": "dataAdded"
+          },
+          "triggers": {
+            "triggered": [],
+            "dataAdded": [],
+            "dataUpdated": [],
+            "dataRemoved": [],
+            "dataQueried": []
+          }
+        },
+        {
+          "name": "TempStorage",
+          "type": "CloudStorage",
+          "variants": [
+            "cloud"
+          ],
+          "properties": {
+            "errorData": null,
+            "value": null
+          },
+          "meta": {
+            "editorX": 153,
+            "editorY": 94,
+            "lastTrigger": "dataAdded"
+          },
+          "triggers": {
+            "triggered": [],
+            "dataAdded": [],
+            "dataUpdated": [],
+            "dataRemoved": [],
+            "dataQueried": []
+          }
+        },
+        {
+          "name": "ADCEvent",
+          "type": "CloudEvent",
+          "variants": [
+            "cloud"
+          ],
+          "properties": {
+            "errorData": {},
+            "value": null,
+            "code": {
+              "trigger": "\treturn ATMO_Status_Success;",
+              "setup": "\n    \n\t\n\treturn ATMO_Status_Success;\n    ",
+              "sendEvent": "\n    \n\tif( ATMO_CLOUD_SendEvent(ATMO_PROPERTY(ADCEvent, instance), ATMO_ELEMENT_NAME(ADCEvent), in, 100) != ATMO_CLOUD_Status_Success )\n    {  \n        return ATMO_Status_Fail;\n    }\n\n\treturn ATMO_Status_Success;\n\t"
+            },
+            "variables": {},
+            "embeddedPropertyConversions": {},
+            "codeUserChanged": {
+              "setup": false,
+              "sendEvent": false
+            },
+            "instance": "ATMO_DRIVERINSTANCE_CLOUD_CLOUD1"
+          },
+          "meta": {
+            "editorX": 32,
+            "editorY": 176,
+            "lastTrigger": "eventReceived"
+          },
+          "triggers": {
+            "triggered": [],
+            "eventReceived": [
+              {
+                "mapping": {
+                  "value": {
+                    "code": "{\"ADC Reg\":value}"
+                  }
+                },
+                "targetOrder": [
+                  "value"
+                ],
+                "targetElement": "ADCStorage",
+                "targetAbility": "addData"
+              }
+            ]
+          },
+          "coupledElementName": "ADCEvent",
+          "coupledElementPlaneName": "AVR-IoT WG"
+        },
+        {
+          "name": "ADCStorage",
+          "type": "CloudStorage",
+          "variants": [
+            "cloud"
+          ],
+          "properties": {
+            "errorData": null,
+            "value": null
+          },
+          "meta": {
+            "editorX": 154,
+            "editorY": 177,
+            "lastTrigger": "dataAdded"
+          },
+          "triggers": {
+            "triggered": [],
+            "dataAdded": [],
+            "dataUpdated": [],
+            "dataRemoved": [],
+            "dataQueried": []
+          }
+        }
+      ],
+      "layout": {
+        "height": 1000,
+        "width": 1000,
+        "zIndexOrder": []
+      }
+    }
+  }
+}
