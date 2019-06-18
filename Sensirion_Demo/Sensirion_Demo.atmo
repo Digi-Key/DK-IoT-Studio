@@ -1,0 +1,734 @@
+{
+  "name": "New Project",
+  "createVersion": "2017-08-12",
+  "description": "New Project",
+  "lastModified": "2019-06-13T14:45:16.014Z",
+  "created": "2019-06-13T14:45:16.015Z",
+  "meta": {
+    "projectTypeName": "Arduino Mega",
+    "projectTypeId": "mega"
+  },
+  "planes": {
+    "Arduino Mega": {
+      "type": "arduino",
+      "compilerVersion": "latest",
+      "variants": [
+        "mega"
+      ],
+      "meta": {},
+      "elements": [
+        {
+          "name": "SensirionSHTI2C",
+          "type": "EmbeddedSensirionSHTI2C",
+          "variants": [
+            "embedded",
+            "triggers",
+            "abilities",
+            "properties",
+            "variables"
+          ],
+          "properties": {
+            "errorData": {},
+            "code": {
+              "trigger": "\treturn ATMO_Status_Success;",
+              "setup": "\tATMO_SHTI2C_Config_t config;\n\tconfig.i2cDriverInstance = ATMO_PROPERTY(SensirionSHTI2C, i2cInstance);\n\n\treturn ( ATMO_SHTI2C_Init(&config) == ATMO_SHTI2C_Status_Success ) ? ATMO_Status_Success : ATMO_Status_Fail;\n",
+              "readTemperature": "    float tempC;\n    ATMO_SHTI2C_GetTemperature(&tempC);\n    ATMO_CreateValueFloat(out, tempC);\n    return ATMO_Status_Success;\n",
+              "readHumidity": "    float humidity;\n    ATMO_SHTI2C_GetHumidity(&humidity);\n    ATMO_CreateValueFloat(out, humidity);\n    return ATMO_Status_Success;\n"
+            },
+            "variables": {},
+            "embeddedPropertyConversions": {},
+            "codeUserChanged": {
+              "setup": false,
+              "readTemperature": false,
+              "readHumidity": false
+            },
+            "i2cInstance": "ATMO_DRIVERINSTANCE_I2C_I2C1"
+          },
+          "meta": {
+            "editorX": 634,
+            "editorY": 236,
+            "lastTrigger": "temperatureRead"
+          },
+          "triggers": {
+            "triggered": [],
+            "temperatureRead": [
+              {
+                "mapping": {},
+                "targetOrder": [],
+                "targetElement": "DebugPrint",
+                "targetAbility": "print"
+              },
+              {
+                "mapping": {},
+                "targetOrder": [],
+                "targetElement": "TempEvent",
+                "targetAbility": "sendEvent"
+              }
+            ],
+            "humidityRead": []
+          },
+          "interruptAbilities": {
+            "trigger": false,
+            "setup": false,
+            "readTemperature": false,
+            "readHumidity": false
+          },
+          "abilities": [
+            {
+              "name": "trigger",
+              "triggers": [
+                "triggered"
+              ]
+            },
+            {
+              "name": "setup",
+              "triggers": []
+            },
+            {
+              "name": "readTemperature",
+              "triggers": [
+                "temperatureRead"
+              ]
+            },
+            {
+              "name": "readHumidity",
+              "triggers": [
+                "humidityRead"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Interval",
+          "type": "EmbeddedInterval",
+          "variants": [
+            "embedded",
+            "triggers",
+            "abilities",
+            "properties",
+            "variables"
+          ],
+          "properties": {
+            "errorData": {},
+            "code": {
+              "trigger": "\treturn ATMO_Status_Success;",
+              "setup": "\n\tATMO_INTERVAL_Handle_t intervalHandle;\n    ATMO_INTERVAL_AddAbilityInterval(\n\t\tATMO_PROPERTY(Interval, instance), \n\t\tATMO_ABILITY(Interval, interval), \n\t\tATMO_PROPERTY(Interval, time), \n\t\t&intervalHandle\n\t);\n\t\n\treturn ATMO_Status_Success;\n\t",
+              "interval": "\treturn ATMO_Status_Success;"
+            },
+            "variables": {},
+            "embeddedPropertyConversions": {},
+            "codeUserChanged": {
+              "setup": false,
+              "interval": false
+            },
+            "instance": "ATMO_DRIVERINSTANCE_INTERVAL_INTERVAL1",
+            "time": "20000"
+          },
+          "meta": {
+            "editorX": 457,
+            "editorY": 232,
+            "lastTrigger": "interval"
+          },
+          "triggers": {
+            "triggered": [],
+            "interval": [
+              {
+                "mapping": {},
+                "targetOrder": [],
+                "targetElement": "SensirionSHTI2C",
+                "targetAbility": "readTemperature"
+              }
+            ]
+          },
+          "interruptAbilities": {
+            "trigger": false,
+            "setup": false,
+            "interval": true
+          },
+          "abilities": [
+            {
+              "name": "trigger",
+              "triggers": [
+                "triggered"
+              ]
+            },
+            {
+              "name": "setup",
+              "triggers": []
+            },
+            {
+              "name": "interval",
+              "triggers": [
+                "interval"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "DebugPrint",
+          "type": "EmbeddedDebugPrint",
+          "variants": [
+            "embedded",
+            "triggers",
+            "abilities",
+            "properties",
+            "variables",
+            "debugPrint"
+          ],
+          "properties": {
+            "errorData": {},
+            "code": {
+              "trigger": "\treturn ATMO_Status_Success;",
+              "setup": "\n\treturn ATMO_Status_Success;\n\t",
+              "print": "\n    if((in != NULL) && (in->type != ATMO_DATATYPE_VOID))\n    {\n        char str[256];\n        unsigned int prependLen = strlen(ATMO_PROPERTY(DebugPrint, prepend));\n        // If there's text to prepend, do that first\n        if(prependLen > 0)\n        {\n            sprintf(str, \"%s: \", ATMO_PROPERTY(DebugPrint, prepend));\n            prependLen += 2; // Adding 2 chars for \": \"\n        }\n        \n        // Grab the string version of the input data, place it after the prepend text\n        if(ATMO_GetString(in, str + prependLen, 256 - prependLen) == ATMO_Status_Success)\n        {\n            ATMO_PLATFORM_DebugPrint(\"%s\\r\\n\", str);\n        }\n    }\n    else\n    {\n        ATMO_PLATFORM_DebugPrint(\"%s\\r\\n\", ATMO_PROPERTY(DebugPrint, prepend));\n    }\n    \n    return ATMO_Status_Success;\n    "
+            },
+            "variables": {},
+            "embeddedPropertyConversions": {
+              "prepend": "string"
+            },
+            "codeUserChanged": {
+              "setup": false,
+              "print": false
+            },
+            "prepend": ""
+          },
+          "meta": {
+            "editorX": 789,
+            "editorY": 235,
+            "lastTrigger": "printed"
+          },
+          "triggers": {
+            "triggered": [],
+            "printed": []
+          },
+          "interruptAbilities": {
+            "trigger": false,
+            "setup": false,
+            "print": false
+          },
+          "abilities": [
+            {
+              "name": "trigger",
+              "triggers": [
+                "triggered"
+              ]
+            },
+            {
+              "name": "setup",
+              "triggers": []
+            },
+            {
+              "name": "print",
+              "triggers": [
+                "printed"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "XbeeCat1Lte",
+          "type": "EmbeddedXbeeLteCat1",
+          "variants": [
+            "embedded",
+            "triggers",
+            "abilities",
+            "properties",
+            "variables"
+          ],
+          "properties": {
+            "errorData": {},
+            "code": {
+              "trigger": "\treturn ATMO_Status_Success;",
+              "setup": "    XBEE_CAT1_LTE_Config_t config;\n    config.uartInstance = ATMO_PROPERTY(XbeeCat1Lte, uartInstance);\n    config.driverType.type = ATMO_DRIVERTYPE_UART;\n    config.gpioInstance = ATMO_PROPERTY(XbeeCat1Lte, gpioInstance);\n    config.resetPin = ATMO_PROPERTY(XbeeCat1Lte, resetPin);\n    strncpy(config.phoneNumber, ATMO_PROPERTY(XbeeCat1Lte, phoneNumber), XBEE_CAT1_LTE_MAX_PHONE_LEN);\n\n    if(!XBEE_CAT1_LTE_Init(&config, &ATMO_INSTANCE(XbeeCat1Lte, CELLULAR), &ATMO_INSTANCE(XbeeCat1Lte, EMBEDDEDCLOUD)))\n    {\n        return ATMO_Status_Fail;\n    }\n\n    return ATMO_Status_Success;",
+              "sendSms": "    return XBEE_CAT1_LTE_SendSMS(in) ? ATMO_Status_Success : ATMO_Status_Fail;"
+            },
+            "variables": {},
+            "embeddedPropertyConversions": {
+              "phoneNumber": "string"
+            },
+            "codeUserChanged": {
+              "setup": false,
+              "sendSms": false
+            },
+            "uartInstance": "ATMO_DRIVERINSTANCE_UART_UART2",
+            "gpioInstance": "ATMO_DRIVERINSTANCE_GPIO_GPIO1",
+            "resetPin": "ATMO_GPIO_NO_PIN",
+            "phoneNumber": "2187913597"
+          },
+          "meta": {
+            "editorX": 602,
+            "editorY": 73,
+            "lastTrigger": "smsSent"
+          },
+          "triggers": {
+            "triggered": [],
+            "smsSent": []
+          },
+          "interruptAbilities": {
+            "trigger": false,
+            "setup": false,
+            "sendSms": false
+          },
+          "implements": [
+            "embeddedCloud",
+            "cellular"
+          ],
+          "abilities": [
+            {
+              "name": "trigger",
+              "triggers": [
+                "triggered"
+              ]
+            },
+            {
+              "name": "setup",
+              "triggers": []
+            },
+            {
+              "name": "sendSms",
+              "triggers": [
+                "smsSent"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "TempEvent",
+          "type": "EmbeddedCloudEvent",
+          "variants": [
+            "embedded",
+            "triggers",
+            "abilities",
+            "properties",
+            "variables",
+            "embeddedCloud"
+          ],
+          "properties": {
+            "errorData": {},
+            "code": {
+              "trigger": "\treturn ATMO_Status_Success;",
+              "setup": "\n    \n\t\n\treturn ATMO_Status_Success;\n    ",
+              "sendEvent": "\n    \n\tif( ATMO_CLOUD_SendEvent(ATMO_PROPERTY(TempEvent, instance), ATMO_ELEMENT_NAME(TempEvent), in, 100) != ATMO_CLOUD_Status_Success )\n    {  \n        return ATMO_Status_Fail;\n    }\n\n\treturn ATMO_Status_Success;\n\t"
+            },
+            "variables": {},
+            "embeddedPropertyConversions": {},
+            "codeUserChanged": {
+              "setup": false,
+              "sendEvent": false
+            },
+            "instance": "ATMO_DRIVERINSTANCE_EMBEDDEDCLOUD_XbeeCat1Lte"
+          },
+          "meta": {
+            "editorX": 702,
+            "editorY": 73,
+            "lastTrigger": "eventSent"
+          },
+          "triggers": {
+            "triggered": [],
+            "eventSent": []
+          },
+          "interruptAbilities": {
+            "trigger": false,
+            "setup": false,
+            "sendEvent": false
+          },
+          "abilities": [
+            {
+              "name": "trigger",
+              "triggers": [
+                "triggered"
+              ]
+            },
+            {
+              "name": "setup",
+              "triggers": []
+            },
+            {
+              "name": "sendEvent",
+              "triggers": [
+                "eventSent"
+              ]
+            }
+          ]
+        }
+      ],
+      "libraries": {
+        "shti2c": {
+          "libName": "shti2c",
+          "manufacturer": "Sensirion",
+          "description": "SHT Humidity Temperature sensors",
+          "type": "Temperature Sensor",
+          "icon": "",
+          "image": "",
+          "version": "",
+          "eelVersion": "1",
+          "shoppingCartLinks": {
+            "digikey": {
+              "links": {
+                "info": "https://www.digikey.com/product-detail/en/sensirion-ag/SHTC1/1649-1015-1-ND/5872297"
+              },
+              "cartData": {
+                "part": "1649-1015-1-ND",
+                "partid": "5872297",
+                "source": "dkstudio",
+                "qty": "1"
+              }
+            }
+          },
+          "requires": [
+            "embedded",
+            "i2c"
+          ],
+          "elements": [
+            {
+              "name": "SensirionSHTI2C",
+              "type": "EmbeddedSensirionSHTI2C",
+              "icon": "EmbeddedTemperature.svg",
+              "defaultAbility": "readTemperature",
+              "defaultTrigger": "temperatureRead",
+              "hidden": false,
+              "abilities": [
+                {
+                  "name": "setup",
+                  "hidden": true,
+                  "code": "\tATMO_SHTI2C_Config_t config;\n\tconfig.i2cDriverInstance = ATMO_PROPERTY(undefined, i2cInstance);\n\n\treturn ( ATMO_SHTI2C_Init(&config) == ATMO_SHTI2C_Status_Success ) ? ATMO_Status_Success : ATMO_Status_Fail;\n"
+                },
+                {
+                  "name": "readTemperature",
+                  "triggers": [
+                    "temperatureRead"
+                  ],
+                  "code": "    float tempC;\n    ATMO_SHTI2C_GetTemperature(&tempC);\n    ATMO_CreateValueFloat(out, tempC);\n    return ATMO_Status_Success;\n"
+                },
+                {
+                  "name": "readHumidity",
+                  "triggers": [
+                    "humidityRead"
+                  ],
+                  "code": "    float humidity;\n    ATMO_SHTI2C_GetHumidity(&humidity);\n    ATMO_CreateValueFloat(out, humidity);\n    return ATMO_Status_Success;\n"
+                }
+              ],
+              "properties": [
+                {
+                  "name": "i2cInstance",
+                  "input": "driverInstance",
+                  "driverType": "i2c"
+                }
+              ],
+              "triggers": [],
+              "variables": [],
+              "language": {
+                "en-US": {
+                  "EmbeddedSensirionSHTI2C": "Sensirion SHT",
+                  "i2cInstance": "I2C Driver Instance",
+                  "readTemperature": "Read Temperature",
+                  "temperatureRead": "Temperature Read",
+                  "readHumidity": "Read Humidity",
+                  "humidityRead": "Humidity Read",
+                  "setup": "Setup"
+                }
+              }
+            }
+          ],
+          "files": {
+            "common": {
+              "headers": {
+                "shti2c.h": "#ifndef _ATMO_SHTI2C_H_\n#define _ATMO_SHTI2C_H_\n\n#include \"../app_src/atmosphere_platform.h\"\n#include \"../i2c/i2c.h\"\n\ntypedef enum {\n    ATMO_SHTI2C_Status_Success              = 0x00u,  // Common - Operation was successful\n    ATMO_SHTI2C_Status_Fail                 = 0x01u,  // Common - Operation failed\n    ATMO_SHTI2C_Status_Initialized          = 0x02u,  // Common - Peripheral already initialized\n    ATMO_SHTI2C_Status_Invalid              = 0x03u,  // Common - Invalid operation or result\n    ATMO_SHTI2C_Status_NotSupported         = 0x04u,  // Common - Feature not supported by platform\n} ATMO_SHTI2C_Status_t;\n\ntypedef struct {\n    ATMO_DriverInstanceHandle_t i2cDriverInstance;\n} ATMO_SHTI2C_Config_t;\n\n/**\n * Initialize SHTI2C Driver\n *\n * @param[in] config - Device configuration (optional)\n */\nATMO_SHTI2C_Status_t ATMO_SHTI2C_Init(ATMO_SHTI2C_Config_t *config);\n\n/**\n * Set basic device configuration\n *\n * @param[in] config\n */\nATMO_SHTI2C_Status_t ATMO_SHTI2C_SetConfiguration(const ATMO_SHTI2C_Config_t *config);\n\n/**\n * Get device configuration\n *\n * @param[out] config\n */\nATMO_SHTI2C_Status_t ATMO_SHTI2C_GetConfiguration(ATMO_SHTI2C_Config_t *config);\n\n/**\n * Get Temperature in degrees celsius\n *\n * @param[out] temperature\n */\nATMO_SHTI2C_Status_t ATMO_SHTI2C_GetTemperature(float *temperatureCelsius);\n\n/**\n * Get Relative Humidity in percent\n *\n * @param[out] relative humidity\n */\nATMO_SHTI2C_Status_t ATMO_SHTI2C_GetHumidity(float *humidity);\n\n\n#endif\n"
+              },
+              "objects": {
+                "shti2c.c": "// This is an adaption of:\n//   https://github.com/Sensirion/arduino-ess/blob/master/sensirion_ess.cpp\n//\n// Based on IR Thermoclick example\n//\n// Author: Johannes Winkelmann, jw@smts.ch\n//\n\n#include \"shti2c.h\"\n\n#define SHT_ADDR (0x70)\n#define SHT_CMD_LENGTH (2)\n#define SHT_DATA_LENGTH (6)\n\n#define SHT_UPDATE_THRESHOLD_MS 800\n\n#define SHT_MEASUREMENT_DELAY 15\n\nstatic uint64_t sLastSHTUpdateMs = 0;\n\nstatic float sHumidityCache = 0;\nstatic float sTemperatureCache = 0;\n\ntypedef struct {\n    ATMO_SHTI2C_Config_t config;\n    bool configured;\n} ATMO_SHTI2C_Priv_Config;\n\nstatic ATMO_SHTI2C_Priv_Config _ATMO_SHTI2C_config;\n\nstatic ATMO_I2C_Peripheral_t _ATMO_SHTI2C_i2cConfig = {\n    .operatingMode = ATMO_I2C_OperatingMode_Master,\n    .baudRate = ATMO_I2C_BaudRate_Standard_Mode\n};\n\nATMO_SHTI2C_Status_t ATMO_SHTI2C_updateSHT_Internal();\n\nATMO_SHTI2C_Status_t ATMO_SHTI2C_Init(ATMO_SHTI2C_Config_t *config)\n{\n    if (config) { // Did the user supply a configuration?\n        ATMO_SHTI2C_SetConfiguration(config);\n    } else {\n        _ATMO_SHTI2C_config.configured = false;\n    }\n\n    // initial calls to update function to set lastUpdate variables\n    ATMO_SHTI2C_updateSHT_Internal();\n\n    return ATMO_SHTI2C_Status_Success;\n}\n\nATMO_SHTI2C_Status_t ATMO_SHTI2C_SetConfiguration(const ATMO_SHTI2C_Config_t *config)\n{\n    if (config == NULL) {\n        return ATMO_SHTI2C_Status_Fail;\n    }\n\n    if (ATMO_I2C_SetConfiguration(config->i2cDriverInstance, &_ATMO_SHTI2C_i2cConfig) != ATMO_I2C_Status_Success) {\n        return ATMO_SHTI2C_Status_Fail;\n    }\n    memcpy( &_ATMO_SHTI2C_config.config, config, sizeof(ATMO_SHTI2C_Config_t) );\n    _ATMO_SHTI2C_config.configured = true;\n\n    return ATMO_SHTI2C_Status_Success;\n}\n\nATMO_SHTI2C_Status_t ATMO_SHTI2C_GetConfiguration(ATMO_SHTI2C_Config_t *config)\n{\n    if (config == NULL || !_ATMO_SHTI2C_config.configured) {\n        return ATMO_SHTI2C_Status_Fail;\n    }\n\n    memcpy(config, &_ATMO_SHTI2C_config.config, sizeof(ATMO_SHTI2C_Config_t));\n    return ATMO_SHTI2C_Status_Success;\n}\n\nATMO_SHTI2C_Status_t ATMO_SHTI2C_ReadData_Internal(uint8_t addr, uint8_t* cmd, uint16_t cmdLength,\n          uint8_t* data, uint16_t dataLength, uint16_t measurementDelay)\n{\n  ATMO_I2C_Status_t readStatus;\n  readStatus = ATMO_I2C_MasterWrite(_ATMO_SHTI2C_config.config.i2cDriverInstance,\n                                    addr, cmd, cmdLength,\n                                    NULL, 0,\n                                    0);\n  if (readStatus != ATMO_I2C_Status_Success) {\n      return ATMO_SHTI2C_Status_Fail;\n  }\n\n  ATMO_DelayMillisecondsNonBlock(measurementDelay);\n\n  readStatus = ATMO_I2C_MasterRead(_ATMO_SHTI2C_config.config.i2cDriverInstance,\n                                  addr, NULL, 0, data, dataLength, 0);\n  if (readStatus != ATMO_I2C_Status_Success) {\n      return ATMO_SHTI2C_Status_Fail;\n  }\n\n  return ATMO_SHTI2C_Status_Success;\n}\n\nuint8_t ATMO_SHTI2C_CheckCrc_Internal(const uint8_t* data, uint8_t len)\n{\n    // adapted from SHT21 sample code from http://www.sensirion.com/en/products/humidity-temperature/download-center/\n\n    uint8_t crc = 0xff;\n    uint8_t byteCtr;\n    for (byteCtr = 0; byteCtr < len; ++byteCtr) {\n        crc ^= (data[byteCtr]);\n        for (uint8_t bit = 8; bit > 0; --bit) {\n            if (crc & 0x80) {\n                crc = (crc << 1) ^ 0x31;\n            } else {\n                crc = (crc << 1);\n            }\n        }\n    }\n    return crc;\n}\n\n// - SHT\nATMO_SHTI2C_Status_t ATMO_SHTI2C_updateSHT_Internal()\n{\n  uint64_t now = ATMO_PLATFORM_UptimeMs();\n  if ((now - sLastSHTUpdateMs) < SHT_UPDATE_THRESHOLD_MS) {\n    // reuse cached values\n    return ATMO_SHTI2C_Status_Success;\n  }\n  sLastSHTUpdateMs = now;\n\n  if (!_ATMO_SHTI2C_config.configured) {\n      return ATMO_SHTI2C_Status_Fail;\n  }\n\n  uint8_t data[SHT_DATA_LENGTH] = { 0 };\n  uint8_t cmd[SHT_CMD_LENGTH] = { 0x78, 0x66 };\n  if (ATMO_SHTI2C_ReadData_Internal(SHT_ADDR, cmd,\n                                    SHT_CMD_LENGTH, data,\n                                    SHT_DATA_LENGTH,\n                                    SHT_MEASUREMENT_DELAY) != ATMO_SHTI2C_Status_Success) {\n    return ATMO_SHTI2C_Status_Fail;\n  }\n\n  if (ATMO_SHTI2C_CheckCrc_Internal(data+0, 2) != data[2] ||\n      ATMO_SHTI2C_CheckCrc_Internal(data+3, 2) != data[5]) {\n    return ATMO_SHTI2C_Status_Fail;\n  }\n\n  //  mTemperature = mA + mB * (val / mC);\n  uint16_t rawTemp = (data[0] << 8) | data[1];\n  sTemperatureCache = (float)(-45 + (175.0 * rawTemp / 65535.0));\n\n  //  mHumidity = mX * (val / mY);\n  uint16_t rawHumidity = (data[3] << 8) | data[4];\n  sHumidityCache = (float)(100.0 * rawHumidity / 65535.0);\n\n  return ATMO_SHTI2C_Status_Success;\n}\n\nATMO_SHTI2C_Status_t ATMO_SHTI2C_GetTemperature(float *temperatureCelsius)\n{\n  if (ATMO_SHTI2C_updateSHT_Internal() != ATMO_SHTI2C_Status_Success) {\n    return ATMO_SHTI2C_Status_Fail;\n  }\n  *temperatureCelsius = sTemperatureCache;\n\n  return ATMO_SHTI2C_Status_Success;\n}\n\n\nATMO_SHTI2C_Status_t ATMO_SHTI2C_GetHumidity(float *humidity)\n{\n  if (ATMO_SHTI2C_updateSHT_Internal() != ATMO_SHTI2C_Status_Success) {\n    return ATMO_SHTI2C_Status_Fail;\n  }\n  *humidity = sHumidityCache;\n\n  return ATMO_SHTI2C_Status_Success;\n}\n"
+              }
+            }
+          },
+          "md5": "9430fa5995a4e4aad01c198b38826a03"
+        },
+        "xbeecat1": {
+          "libName": "xbeecat1",
+          "manufacturer": "Digi",
+          "description": "XBee Cellular LTE CAT1 Modem",
+          "type": "Cellular",
+          "icon": "",
+          "image": "",
+          "version": "",
+          "eelVersion": "3",
+          "shoppingCartLinks": {
+            "digikey": {
+              "links": {
+                "info": "https://www.digikey.com/short/pj30c5"
+              },
+              "cartData": {
+                "part": "602-1976-ND",
+                "source": "dkstudio",
+                "qty": "1"
+              }
+            }
+          },
+          "requires": [
+            "embedded",
+            "uart",
+            "uptime"
+          ],
+          "elements": [
+            {
+              "name": "XbeeCat1Lte",
+              "type": "EmbeddedXbeeLteCat1",
+              "icon": "EmbeddedCellularConnection.svg",
+              "implements": [
+                "embeddedCloud",
+                "cellular"
+              ],
+              "helpPageHref": "https://developer.atmosphereiot.com/documents/elements/digixbeeltecat1.html",
+              "defaultAbility": "sendSms",
+              "defaultTrigger": "smsSent",
+              "hidden": false,
+              "abilities": [
+                {
+                  "name": "setup",
+                  "hidden": true,
+                  "code": "    XBEE_CAT1_LTE_Config_t config;\n    config.uartInstance = ATMO_PROPERTY(undefined, uartInstance);\n    config.driverType.type = ATMO_DRIVERTYPE_UART;\n    config.gpioInstance = ATMO_PROPERTY(undefined, gpioInstance);\n    config.resetPin = ATMO_PROPERTY(undefined, resetPin);\n    strncpy(config.phoneNumber, ATMO_PROPERTY(undefined, phoneNumber), XBEE_CAT1_LTE_MAX_PHONE_LEN);\n\n    if(!XBEE_CAT1_LTE_Init(&config, &ATMO_INSTANCE(undefined, CELLULAR), &ATMO_INSTANCE(undefined, EMBEDDEDCLOUD)))\n    {\n        return ATMO_Status_Fail;\n    }\n\n    return ATMO_Status_Success;"
+                },
+                {
+                  "name": "sendSms",
+                  "triggers": [
+                    "smsSent"
+                  ],
+                  "code": "    return XBEE_CAT1_LTE_SendSMS(in) ? ATMO_Status_Success : ATMO_Status_Fail;"
+                }
+              ],
+              "properties": [
+                {
+                  "name": "uartInstance",
+                  "input": "driverInstance",
+                  "driverType": "uart"
+                },
+                {
+                  "name": "gpioInstance",
+                  "input": "driverInstance",
+                  "driverType": "gpio"
+                },
+                {
+                  "name": "resetPin",
+                  "input": "number",
+                  "value": "ATMO_GPIO_NO_PIN"
+                },
+                {
+                  "name": "phoneNumber",
+                  "input": "text",
+                  "embeddedConversion": "string",
+                  "value": ""
+                }
+              ],
+              "triggers": [],
+              "variables": [],
+              "language": {
+                "en-US": {
+                  "EmbeddedXbeeLteCat1": "XBee Cellular LTE CAT1",
+                  "uartInstance": "UART Driver Instance",
+                  "resetPin": "Reset Pin",
+                  "gpioInstance": "GPIO Driver Instance",
+                  "phoneNumber": "Destination Phone Number",
+                  "sendSms": "Send SMS",
+                  "smsSent": "SMS Sent"
+                }
+              }
+            }
+          ],
+          "files": {
+            "common": {
+              "headers": {
+                "xbeecat1lte.h": "#ifndef __XBEE_CAT1_LTE_H_\n#define __XBEE_CAT1_LTE_H_\n\n#include \"../app_src/atmosphere_platform.h\"\n#include \"../tcpclient/tcpclient.h\"\n#include \"../cellular/cellular.h\"\n#include \"../http/http.h\"\n#include \"../atmo/core.h\"\n\n#ifdef __cplusplus\n\textern \"C\"{\n#endif\n\n#define XBEE_CAT1_LTE_MAX_PHONE_LEN 20\n\ntypedef struct {\n    ATMO_DriverInstanceHandle_t uartInstance;\n    ATMO_DriverInstanceHandle_t gpioInstance;\n    ATMO_GPIO_Device_Pin_t resetPin;\n    ATMO_DriverInstanceHandle_t spiInstance; // FUTURE\n    ATMO_CORE_DeviceHandle_t driverType; // FUTURE\n    char phoneNumber[XBEE_CAT1_LTE_MAX_PHONE_LEN + 1];\n} XBEE_CAT1_LTE_Config_t;\n\nATMO_BOOL_t XBEE_CAT1_LTE_Init(XBEE_CAT1_LTE_Config_t *config, ATMO_DriverInstanceHandle_t *cellularInstance, ATMO_DriverInstanceHandle_t *cloudInstance);\nATMO_BOOL_t XBEE_CAT1_LTE_SendSMS(ATMO_Value_t *data);\n\nATMO_Status_t XBEE_CAT1_LTE_TCP_CLIENT_AddDriverInstance(ATMO_DriverInstanceHandle_t *instanceNumber);\nATMO_TCP_CLIENT_Status_t XBEE_CAT1_LTE_TCP_CLIENT_Init(ATMO_DriverInstanceData_t *instance);\nATMO_TCP_CLIENT_Status_t XBEE_CAT1_LTE_TCP_CLIENT_DeInit(ATMO_DriverInstanceData_t *instance);\nATMO_TCP_CLIENT_Status_t XBEE_CAT1_LTE_TCP_CLIENT_SetConfiguration(ATMO_DriverInstanceData_t *instance, const ATMO_TCP_CLIENT_Config_t *config);\nATMO_TCP_CLIENT_Status_t XBEE_CAT1_LTE_TCP_CLIENT_Connect(ATMO_DriverInstanceData_t *instance, const char *host, unsigned int port, ATMO_BOOL_t useSSL);\nATMO_TCP_CLIENT_Status_t XBEE_CAT1_LTE_TCP_CLIENT_Disconnect(ATMO_DriverInstanceData_t *instance);\nATMO_TCP_CLIENT_Status_t XBEE_CAT1_LTE_TCP_CLIENT_GetConnectionStatus(ATMO_DriverInstanceData_t *instance, ATMO_TCP_CLIENT_ConnectionStatus_t *status);\nATMO_TCP_CLIENT_Status_t XBEE_CAT1_LTE_TCP_CLIENT_WriteBytes(ATMO_DriverInstanceData_t *instance, uint8_t *data, unsigned int dataLen);\nATMO_TCP_CLIENT_Status_t XBEE_CAT1_LTE_TCP_CLIENT_SetReceiveCallback(ATMO_DriverInstanceData_t *instance, ATMO_Callback_t cb);\nATMO_TCP_CLIENT_Status_t XBEE_CAT1_LTE_TCP_CLIENT_GetNumAvailableBytes(ATMO_DriverInstanceData_t *instance, uint32_t *numBytes, uint8_t **bytePtr);\n\nATMO_Status_t XBEE_CAT1_LTE_CELLULAR_AddDriverInstance(ATMO_DriverInstanceHandle_t *instanceNumber);\nATMO_CELLULAR_Status_t XBEE_CAT1_LTE_CELLULAR_Init(ATMO_DriverInstanceData_t *instance);\nATMO_CELLULAR_Status_t XBEE_CAT1_LTE_CELLULAR_DeInit(ATMO_DriverInstanceData_t *instance);\nATMO_CELLULAR_Status_t XBEE_CAT1_LTE_CELLULAR_GetConnectionStatus(ATMO_DriverInstanceData_t *instance, ATMO_CELLULAR_ConnectionStatus_t *status);\n\n#ifdef __cplusplus\n\t}\n#endif\n\n#endif"
+              },
+              "objects": {
+                "xbeecat1lte.c": "#include \"xbeecat1lte.h\"\n#include \"../app_src/atmosphere_platform.h\"\n\nstatic XBEE_CAT1_LTE_Config_t _XBEE_CAT1_LTE_Config;\n\n/* Timeout for general AT commands */\n#define XBEE_CAT1_TIMEOUT_MS 2000\n\n/* Timeout for HTTP requests */\n#define XBEE_CAT1_HTTP_TIMEOUT_MS 15000\n\n/* Buffer for HTTP responses */\n#define XBEE_CAT1_HTTP_BUF_SIZE 600\n#define XBEE_CAT1_HTTP_RESP_BUF_SIZE 256\n\n/* Number of times to retry entering command mode */\n#define XBEE_CAT1_CMD_MODE_NUM_RETRIES 3\n\nconst ATMO_TCP_CLIENT_DriverInstance_t xbeeTcpClientDriverInstance =\n    {\n        XBEE_CAT1_LTE_TCP_CLIENT_Init,\n        XBEE_CAT1_LTE_TCP_CLIENT_DeInit,\n        XBEE_CAT1_LTE_TCP_CLIENT_SetConfiguration,\n        XBEE_CAT1_LTE_TCP_CLIENT_Connect,\n        XBEE_CAT1_LTE_TCP_CLIENT_Disconnect,\n        XBEE_CAT1_LTE_TCP_CLIENT_GetConnectionStatus,\n        XBEE_CAT1_LTE_TCP_CLIENT_WriteBytes,\n        XBEE_CAT1_LTE_TCP_CLIENT_SetReceiveCallback,\n        XBEE_CAT1_LTE_TCP_CLIENT_GetNumAvailableBytes\n    };\n\nconst ATMO_CELLULAR_DriverInstance_t xbeeCellularDriverInstance =\n    {\n        XBEE_CAT1_LTE_CELLULAR_Init,\n        XBEE_CAT1_LTE_CELLULAR_DeInit,\n        XBEE_CAT1_LTE_CELLULAR_GetConnectionStatus\n    };\n\n/* Callback for TCP Client RX Data. Registered by HTTP driver */\nstatic ATMO_Callback_t _XBEE_CAT1_TCP_CLIENT_RxCB = NULL;\n\nstatic uint32_t _XBEE_CAT1_TCP_CLIENT_NumBytesAvailable = 0;\nstatic ATMO_DriverInstanceHandle_t _XBEE_CAT1_HTTPInstance = 0;\n\n/* Response buffers */\nstatic char _XBEE_CAT1_RespBuf[XBEE_CAT1_HTTP_BUF_SIZE];\nstatic char _XBEE_CAT1_HttpPacketBuf[ATMO_HTTP_DEFAULT_PACKETBUF_SIZE];\n\n/* Global to indicate if the modem is busy with a command. This is to avoid sending a command while it's already sending a command. */\nstatic ATMO_BOOL_t _XBEE_CAT1_Busy = false;\n\nstatic ATMO_TCP_CLIENT_ConnectionStatus_t _XBEE_CAT1_ConnectionStatus = ATMO_TCP_CLIENT_Disconnected;\n\nstatic uint32_t _XBEE_CAT1_GuardTimeMs = 1000;\nstatic ATMO_BOOL_t _XBEE_CAT1_WaitingForResponse = false;\n\n/**\n * @brief Private functions\n * \n */\nstatic void _XBEE_CAT1_LTE_Flush();\nstatic ATMO_TCP_CLIENT_Status_t _XBEE_CAT1_LTE_TCP_CLIENT_GetConnectionStatus(ATMO_DriverInstanceData_t *instance, ATMO_TCP_CLIENT_ConnectionStatus_t *status);\nstatic ATMO_BOOL_t XBEE_CAT1_LTE_EnterCommandMode();\nstatic ATMO_BOOL_t XBEE_CAT1_LTE_SendAtCommand(const char *cmd, const char *params);\nstatic ATMO_BOOL_t XBEE_CAT1_LTE_ExitCommandMode();\n\n/* Flush the buffer. This currently has some issues with Arduino */\nstatic void _XBEE_CAT1_LTE_Flush()\n{\n    ATMO_UART_FlushRx(_XBEE_CAT1_LTE_Config.uartInstance);\n}\n\nstatic void _XBEE_CAT1_LTE_CheckForResponse(void *data)\n{\n    static ATMO_BOOL_t lastWaitingForResponse = false;\n    static uint64_t startTime = 0;\n    static uint64_t timeSinceStart = 0; // Overall timeout to jump out in case of error\n    static uint64_t lastNewByteTime = 0;\n    static uint32_t lastNBytesAvailable = 0;\n\n    if (!_XBEE_CAT1_WaitingForResponse)\n    {\n        return;\n    }\n\n    // Transitioned into waiting for resp\n    if (_XBEE_CAT1_WaitingForResponse && !lastWaitingForResponse)\n    {\n        startTime = ATMO_PLATFORM_UptimeMs();\n        timeSinceStart = 0;\n    }\n\n    // No resp received in time\n    if (timeSinceStart > XBEE_CAT1_HTTP_TIMEOUT_MS)\n    {\n        _XBEE_CAT1_WaitingForResponse = false;\n        _XBEE_CAT1_Busy = false;\n        return;\n    }\n\n    // After the first byte is received, it should be a constant stream of data.\n    // If no bytes have been received for a few loops after the initial byte has been received. The transfer is done.\n    ATMO_UART_CheckForData(_XBEE_CAT1_LTE_Config.uartInstance);\n    timeSinceStart = ATMO_PLATFORM_UptimeMs() - startTime;\n\n    unsigned int nBytesAvailable = 0;\n    ATMO_UART_NumRxBytesAvailable(_XBEE_CAT1_LTE_Config.uartInstance, &nBytesAvailable);\n\n    if (nBytesAvailable > 0 && (nBytesAvailable != lastNBytesAvailable))\n    {\n        lastNewByteTime = ATMO_PLATFORM_UptimeMs();\n    }\n\n    ATMO_BOOL_t respReceived = false;\n\n    // It's been awhile since a new byte has been received\n    if (nBytesAvailable > 0 && (nBytesAvailable == lastNBytesAvailable))\n    {\n        if (ATMO_PLATFORM_UptimeMs() - lastNewByteTime > 1000)\n        {\n            respReceived = true;\n        }\n    }\n\n    lastNBytesAvailable = nBytesAvailable;\n\n    if (respReceived)\n    {\n//        ATMO_PLATFORM_DebugPrint(\"RX Complete: %s\\r\\n\", _XBEE_CAT1_RespBuf);\n\n        // Only care about the 1st line and data after the headers\n        char *firstLineEnd = strchr((char *)_XBEE_CAT1_RespBuf, '\\r');\n\n        if (firstLineEnd == NULL)\n        {\n            return ATMO_TCP_CLIENT_Status_Fail;\n        }\n\n        *firstLineEnd = 0;\n        strcpy(_XBEE_CAT1_HttpPacketBuf, _XBEE_CAT1_RespBuf);\n\n        // Find data\n        firstLineEnd++;\n\n        char *dataStart = strstr(firstLineEnd, \"\\r\\n\\r\\n\");\n\n        if (dataStart == NULL)\n        {\n            return ATMO_TCP_CLIENT_Status_Fail;\n        }\n\n        strcat(_XBEE_CAT1_HttpPacketBuf, dataStart);\n\n//        ATMO_PLATFORM_DebugPrint(\"Resp Buffer: %s\\r\\n\", _XBEE_CAT1_HttpPacketBuf);\n        _XBEE_CAT1_TCP_CLIENT_NumBytesAvailable = strlen(_XBEE_CAT1_HttpPacketBuf) + 1;\n\n        if (_XBEE_CAT1_TCP_CLIENT_RxCB != NULL)\n        {\n            ATMO_AddCallbackExecute(_XBEE_CAT1_TCP_CLIENT_RxCB, NULL);\n        }\n\n        _XBEE_CAT1_Busy = false;\n        _XBEE_CAT1_WaitingForResponse = false;\n    }\n\n    lastWaitingForResponse = _XBEE_CAT1_WaitingForResponse;\n}\n\nstatic ATMO_TCP_CLIENT_Status_t _XBEE_CAT1_LTE_TCP_CLIENT_GetConnectionStatus(ATMO_DriverInstanceData_t *instance, ATMO_TCP_CLIENT_ConnectionStatus_t *status)\n{\n    // Return \"disconnected\" if currently busy\n    if (_XBEE_CAT1_Busy == true)\n    {\n        *status = ATMO_TCP_CLIENT_Disconnected;\n        return ATMO_TCP_CLIENT_Status_Fail;\n    }\n\n    _XBEE_CAT1_Busy = true;\n\n    if (!XBEE_CAT1_LTE_EnterCommandMode())\n    {\n        ATMO_PLATFORM_DebugPrint(\"Failed to enter command mode\\r\\n\");\n        _XBEE_CAT1_Busy = false;\n        *status = ATMO_TCP_CLIENT_Disconnected;\n        return ATMO_TCP_CLIENT_Status_Fail;\n    }\n\n    // Connected to the internet?\n    if (!XBEE_CAT1_LTE_SendAtCommand(\"ATAI\", NULL))\n    {\n        _XBEE_CAT1_Busy = false;\n        *status = ATMO_TCP_CLIENT_Error;\n        return ATMO_TCP_CLIENT_Status_Fail;\n    }\n\n    uint32_t statusInt = strtoul(_XBEE_CAT1_RespBuf, NULL, 16);\n\n    if (!XBEE_CAT1_LTE_ExitCommandMode())\n    {\n        _XBEE_CAT1_Busy = false;\n        return ATMO_TCP_CLIENT_Status_Fail;\n    }\n\n    if (statusInt == 0x0)\n    {\n        *status = ATMO_TCP_CLIENT_Connected;\n    }\n    else\n    {\n        *status = ATMO_TCP_CLIENT_Disconnected;\n    }\n\n    _XBEE_CAT1_ConnectionStatus = *status;\n\n    _XBEE_CAT1_Busy = false;\n    return ATMO_TCP_CLIENT_Status_Success;\n}\n\nstatic ATMO_BOOL_t XBEE_CAT1_LTE_EnterCommandMode()\n{\n    for (uint32_t i = 0; i < XBEE_CAT1_CMD_MODE_NUM_RETRIES; i++)\n    {\n        _XBEE_CAT1_LTE_Flush();\n\n        // There must be at least 1 second preceding entering command mode according to the spec\n        ATMO_PLATFORM_DelayMilliseconds(_XBEE_CAT1_GuardTimeMs);\n\n        ATMO_BOOL_t responseReceived = false;\n        uint32_t nBytesSent = 0;\n        ATMO_UART_WriteBlocking(_XBEE_CAT1_LTE_Config.uartInstance, \"+++\", strlen(\"+++\"), &nBytesSent, 1000);\n\n        uint64_t startTime = ATMO_PLATFORM_UptimeMs();\n        uint64_t currentTime = 0;\n        unsigned int nBytesAvailable = 0;\n\n        // Wait for either a response or the timeout\n        while (!responseReceived && (currentTime < XBEE_CAT1_TIMEOUT_MS))\n        {\n            // Keep the system moving\n            ATMO_UART_CheckForData(_XBEE_CAT1_LTE_Config.uartInstance);\n            currentTime = ATMO_PLATFORM_UptimeMs() - startTime;\n\n            // Since the UART driver is using our RX buffer, it will just be filled by the UART driver\n            // So, no data copying\n            ATMO_UART_NumRxBytesAvailable(_XBEE_CAT1_LTE_Config.uartInstance, &nBytesAvailable);\n\n            // Every response in command mode will end with a single \\r\n            if (nBytesAvailable > 0)\n            {\n                if (strcmp(_XBEE_CAT1_RespBuf, \"OK\\r\") == 0)\n                {\n                    return true;\n                }\n            }\n        }\n    }\n    return false;\n}\n\nstatic ATMO_BOOL_t XBEE_CAT1_LTE_SendAtCommand(const char *cmd, const char *params)\n{\n    _XBEE_CAT1_LTE_Flush();\n    uint32_t tmp = 0;\n    ATMO_BOOL_t responseReceived = false;\n    uint32_t cmdLen = strlen(cmd);\n\n    ATMO_UART_WriteBlocking(_XBEE_CAT1_LTE_Config.uartInstance, cmd, strlen(cmd), &tmp, 1000);\n\n    // Write AT command parameters if there are any\n    if (params != NULL)\n    {\n        ATMO_UART_WriteBlocking(_XBEE_CAT1_LTE_Config.uartInstance, \" \", 1, &tmp, 1000);\n        ATMO_UART_WriteBlocking(_XBEE_CAT1_LTE_Config.uartInstance, params, strlen(params), &tmp, 1000);\n    }\n\n    ATMO_UART_WriteBlocking(_XBEE_CAT1_LTE_Config.uartInstance, \"\\r\", 1, &tmp, 1000);\n\n    uint32_t currentTime = 0;\n    uint32_t startTime = ATMO_PLATFORM_UptimeMs();\n    unsigned int nBytesAvailable = 0;\n\n    // Wait for either a response or the timeout\n    while (!responseReceived && (currentTime < XBEE_CAT1_TIMEOUT_MS))\n    {\n        ATMO_UART_CheckForData(_XBEE_CAT1_LTE_Config.uartInstance);\n        currentTime = ATMO_PLATFORM_UptimeMs() - startTime;\n        ATMO_UART_NumRxBytesAvailable(_XBEE_CAT1_LTE_Config.uartInstance, &nBytesAvailable);\n\n        if (nBytesAvailable > 0)\n        {\n            if (_XBEE_CAT1_RespBuf[nBytesAvailable - 1] == '\\r')\n            {\n                responseReceived = true;\n            }\n        }\n    }\n\n    if (!responseReceived)\n    {\n        return false;\n    }\n\n    if (params != NULL)\n    {\n        // Should have received an OK back\n        if (strcmp(_XBEE_CAT1_RespBuf, \"OK\\r\") != 0)\n        {\n            return false;\n        }\n    }\n\n    return true;\n}\n\nstatic ATMO_BOOL_t XBEE_CAT1_LTE_ExitCommandMode()\n{\n    return XBEE_CAT1_LTE_SendAtCommand(\"ATCN\", NULL);\n}\n\nATMO_BOOL_t XBEE_CAT1_LTE_AutoBaud()\n{\n    ATMO_UART_BaudRate_t baudRates[] = {ATMO_UART_BaudRate_9600, ATMO_UART_BaudRate_2400, ATMO_UART_BaudRate_1200, ATMO_UART_BaudRate_4800, ATMO_UART_BaudRate_19200,\n                                        ATMO_UART_BaudRate_38400, ATMO_UART_BaudRate_57600, ATMO_UART_BaudRate_115200, ATMO_UART_BaudRate_230400, ATMO_UART_BaudRate_460800, ATMO_UART_BaudRate_921600};\n    unsigned int currentBaudIndex = 0;\n\n    ATMO_BOOL_t baudFound = false;\n\n    while (!baudFound && baudRates[currentBaudIndex] != ATMO_UART_BaudRate_921600)\n    {\n        ATMO_PLATFORM_DebugPrint(\"Trying baud: %lu\\r\\n\", baudRates[currentBaudIndex]);\n        ATMO_UART_Peripheral_t uartConfig;\n        ATMO_UART_GetDefaultConfig(&uartConfig);\n        uartConfig.baudRate = baudRates[currentBaudIndex];\n        uartConfig.rxBuffer = false;\n        uartConfig.customBuffer = (uint8_t *)_XBEE_CAT1_RespBuf;\n        uartConfig.customBufferSize = XBEE_CAT1_HTTP_BUF_SIZE * sizeof(char);\n        if(ATMO_UART_SetConfiguration(_XBEE_CAT1_LTE_Config.uartInstance, &uartConfig) != ATMO_UART_Status_Success)\n        {\n            // Try the next baud\n            currentBaudIndex++;\n            continue;\n        }\n\n        if (_XBEE_CAT1_LTE_Config.resetPin != ATMO_GPIO_NO_PIN)\n        {\n            ATMO_PLATFORM_DebugPrint(\"Resetting XBEE\\r\\n\");\n            ATMO_GPIO_SetPinState(_XBEE_CAT1_LTE_Config.gpioInstance, _XBEE_CAT1_LTE_Config.resetPin, ATMO_GPIO_PinState_Low);\n            ATMO_PLATFORM_DelayMilliseconds(500);\n            ATMO_GPIO_SetPinState(_XBEE_CAT1_LTE_Config.gpioInstance, _XBEE_CAT1_LTE_Config.resetPin, ATMO_GPIO_PinState_High);\n            ATMO_PLATFORM_DelayMilliseconds(500);\n        }\n\n        if (XBEE_CAT1_LTE_EnterCommandMode())\n        {\n            ATMO_PLATFORM_DebugPrint(\"Baud Found! Changing to 9600\\r\\n\");\n            XBEE_CAT1_LTE_SendAtCommand(\"ATBD\", \"3\");\n            XBEE_CAT1_LTE_SendAtCommand(\"ATWR\", NULL); // write to NVM\n            XBEE_CAT1_LTE_SendAtCommand(\"ATGT\", \"2\");  // Set guard time lower\n            _XBEE_CAT1_GuardTimeMs = 2;\n            XBEE_CAT1_LTE_ExitCommandMode();\n\n            if (uartConfig.baudRate != ATMO_UART_BaudRate_9600)\n            {\n                uartConfig.baudRate = ATMO_UART_BaudRate_9600;\n                ATMO_UART_SetConfiguration(_XBEE_CAT1_LTE_Config.uartInstance, &uartConfig);\n            }\n            baudFound = true;\n            break;\n        }\n        else\n        {\n            currentBaudIndex++;\n        }\n    }\n\n    if (!baudFound)\n    {\n        ATMO_PLATFORM_DebugPrint(\"Autobaud failed\\r\\n\");\n    }\n\n    return baudFound;\n}\n\nATMO_BOOL_t XBEE_CAT1_LTE_Init(XBEE_CAT1_LTE_Config_t *config, ATMO_DriverInstanceHandle_t *cellularInstance, ATMO_DriverInstanceHandle_t *cloudInstance)\n{\n    // ATMO_INTERVAL_AddCallbackInterval(0, _XBEE_CAT1_LTE_TimeKeeper, 1000, NULL);\n    memcpy(&_XBEE_CAT1_LTE_Config, config, sizeof(_XBEE_CAT1_LTE_Config));\n\n    ATMO_PLATFORM_DebugPrint(\"Initializing XBEE\\r\\n\");\n\n    ATMO_UART_Peripheral_t uartConfig;\n    ATMO_UART_GetDefaultConfig(&uartConfig);\n    uartConfig.baudRate = ATMO_UART_BaudRate_9600;\n    uartConfig.rxBuffer = false;\n    uartConfig.isBinaryData = false;\n    uartConfig.rxTrim = false;\n    uartConfig.customBuffer = (uint8_t *)_XBEE_CAT1_RespBuf;\n    uartConfig.customBufferSize = XBEE_CAT1_HTTP_BUF_SIZE * sizeof(char);\n    strcpy(uartConfig.splitRegex, \".*\\r\");\n\n    if(ATMO_UART_Init(config->uartInstance) != ATMO_UART_Status_Success)\n    {\n        return false;\n    }\n\n    if(ATMO_UART_SetConfiguration(config->uartInstance, &uartConfig) != ATMO_UART_Status_Success)\n    {\n        return false;\n    }\n\n    if (_XBEE_CAT1_LTE_Config.resetPin != ATMO_GPIO_NO_PIN)\n    {\n        ATMO_GPIO_Config_t gpioConf;\n        gpioConf.initialState = ATMO_GPIO_PinState_High;\n        gpioConf.pinMode = ATMO_GPIO_PinMode_Output_PushPull;\n        ATMO_GPIO_SetPinConfiguration(_XBEE_CAT1_LTE_Config.gpioInstance, _XBEE_CAT1_LTE_Config.resetPin, &gpioConf);\n    }\n\n    ATMO_PLATFORM_DebugPrint(\"Attempting autobaud...\\r\\n\");\n    \n    if(!XBEE_CAT1_LTE_AutoBaud())\n    {\n        return false;\n    }\n\n    ATMO_DriverInstanceHandle_t tcpClientInstance = 0;\n    if(XBEE_CAT1_LTE_TCP_CLIENT_AddDriverInstance(&tcpClientInstance) != ATMO_Status_Success)\n    {\n        return false;\n    }\n\n    if(ATMO_TCP_CLIENT_Init(tcpClientInstance) != ATMO_TCP_CLIENT_Status_Success)\n    {\n        return false;\n    }\n\n    if(ATMO_HTTP_Init(tcpClientInstance, (uint8_t *)_XBEE_CAT1_HttpPacketBuf, ATMO_HTTP_DEFAULT_PACKETBUF_SIZE * sizeof(char), &_XBEE_CAT1_HTTPInstance) != ATMO_HTTP_Status_Success)\n    {\n        return false;\n    }\n\n    if(XBEE_CAT1_LTE_CELLULAR_AddDriverInstance(cellularInstance) != ATMO_CELLULAR_Status_Success)\n    {\n        return false;\n    }\n    \n    if(ATMO_CELLULAR_Init(*cellularInstance) != ATMO_CELLULAR_Status_Success)\n    {\n        return false;\n    }\n\n    if(ATMO_CLOUD_TCP_AddDriverInstanceByType(cloudInstance, *cellularInstance, ATMO_DRIVERTYPE_CELLULAR, _XBEE_CAT1_HTTPInstance, ATMO_DRIVERINSTANCE_DEFAULT, ATMO_DRIVERINSTANCE_DEFAULT) != ATMO_CLOUD_Status_Success)\n    {\n        return false;\n    }\n\n    if(ATMO_CLOUD_Init(*cloudInstance, false) != ATMO_CLOUD_Status_Success)\n    {\n        return false;\n    }\n\n    ATMO_PLATFORM_DebugPrint(\"XBEE Init complete\\r\\n\");\n\n    ATMO_AddTickCallback(_XBEE_CAT1_LTE_CheckForResponse);\n\n    return true;\n}\n\nATMO_BOOL_t XBEE_CAT1_LTE_SendSMS(ATMO_Value_t *data)\n{\n    if (_XBEE_CAT1_Busy == true)\n    {\n        ATMO_PLATFORM_DebugPrint(\"Client busy...\\r\\n\");\n        return false;\n    }\n\n    ATMO_TCP_CLIENT_ConnectionStatus_t connStatus; \n    if( _XBEE_CAT1_LTE_TCP_CLIENT_GetConnectionStatus(NULL, &connStatus) != ATMO_TCP_CLIENT_Status_Success || connStatus != ATMO_TCP_CLIENT_Connected)\n    {\n        ATMO_PLATFORM_DebugPrint(\"Not connected: %d\\r\\n\", connStatus);\n        _XBEE_CAT1_Busy = false;\n        return false;\n    }\n\n    _XBEE_CAT1_Busy = true;\n\n    if (!XBEE_CAT1_LTE_EnterCommandMode())\n    {\n        _XBEE_CAT1_Busy = false;\n        return false;\n    }\n\n    // Set IP mode to \"SMS\"\n    if (!XBEE_CAT1_LTE_SendAtCommand(\"ATIP\", \"2\"))\n    {\n        _XBEE_CAT1_Busy = false;\n        return false;\n    }   \n\n    // Set destination phone number\n    if (!XBEE_CAT1_LTE_SendAtCommand(\"ATP#\", _XBEE_CAT1_LTE_Config.phoneNumber))\n    {\n        _XBEE_CAT1_Busy = false;\n        return false;\n    }  \n\n    if (!XBEE_CAT1_LTE_ExitCommandMode())\n    {\n        _XBEE_CAT1_Busy = false;\n        return false;\n    }\n\n    ATMO_Value_t strValue;\n    ATMO_InitValue(&strValue);\n    ATMO_CreateValueConverted(&strValue, ATMO_DATATYPE_STRING, data);\n\n    // Send data\n    ATMO_UART_WriteStringBlocking(_XBEE_CAT1_LTE_Config.uartInstance, (const char *)strValue.data);\n\n    ATMO_FreeValue(&strValue);\n\n    _XBEE_CAT1_Busy = false;\n    return true;\n}\n\nATMO_Status_t XBEE_CAT1_LTE_TCP_CLIENT_AddDriverInstance(ATMO_DriverInstanceHandle_t *instanceNumber)\n{\n    static ATMO_DriverInstanceData_t xbeeTcpClientDriverInstanceData;\n\n    xbeeTcpClientDriverInstanceData.name = \"\";\n    xbeeTcpClientDriverInstanceData.initialized = false;\n    xbeeTcpClientDriverInstanceData.instanceNumber = 0;\n\n    return ATMO_TCP_CLIENT_AddDriverInstance(&xbeeTcpClientDriverInstance, &xbeeTcpClientDriverInstanceData, instanceNumber);\n}\n\nATMO_TCP_CLIENT_Status_t XBEE_CAT1_LTE_TCP_CLIENT_Init(ATMO_DriverInstanceData_t *instance)\n{\n    return ATMO_TCP_CLIENT_Status_Success;\n}\n\nATMO_TCP_CLIENT_Status_t XBEE_CAT1_LTE_TCP_CLIENT_DeInit(ATMO_DriverInstanceData_t *instance)\n{\n    return ATMO_TCP_CLIENT_Status_Success;\n}\n\nATMO_TCP_CLIENT_Status_t XBEE_CAT1_LTE_TCP_CLIENT_SetConfiguration(ATMO_DriverInstanceData_t *instance, const ATMO_TCP_CLIENT_Config_t *config)\n{\n    return ATMO_TCP_CLIENT_Status_Success;\n}\n\nATMO_TCP_CLIENT_Status_t XBEE_CAT1_LTE_TCP_CLIENT_GetConnectionStatus(ATMO_DriverInstanceData_t *instance, ATMO_TCP_CLIENT_ConnectionStatus_t *status)\n{\n    _XBEE_CAT1_LTE_TCP_CLIENT_GetConnectionStatus(instance, status);\n    return ATMO_TCP_CLIENT_Status_Success;\n}\n\nATMO_TCP_CLIENT_Status_t XBEE_CAT1_LTE_TCP_CLIENT_Connect(ATMO_DriverInstanceData_t *instance, const char *host, unsigned int port, ATMO_BOOL_t useSSL)\n{\n    if (_XBEE_CAT1_Busy == true)\n    {\n        ATMO_PLATFORM_DebugPrint(\"Client busy...\\r\\n\");\n        return ATMO_TCP_CLIENT_Status_Fail;\n    }\n    _XBEE_CAT1_Busy = true;\n    if (!XBEE_CAT1_LTE_EnterCommandMode())\n    {\n        _XBEE_CAT1_Busy = false;\n        return ATMO_TCP_CLIENT_Status_Fail;\n    }\n\n    // Set the host\n    if (!XBEE_CAT1_LTE_SendAtCommand(\"ATDL\", host))\n    {\n        _XBEE_CAT1_Busy = false;\n        return ATMO_TCP_CLIENT_Status_Fail;\n    }\n\n    // Set the port\n    char portStr[32];\n    sprintf(portStr, \"%X\", port);\n\n    if (!XBEE_CAT1_LTE_SendAtCommand(\"ATDE\", portStr))\n    {\n        _XBEE_CAT1_Busy = false;\n        return ATMO_TCP_CLIENT_Status_Fail;\n    }\n\n    char ipProtoStr[2] = {0};\n    if (useSSL)\n    {\n        ipProtoStr[0] = '4';\n    }\n    else\n    {\n        ipProtoStr[0] = '1';\n    }\n\n    if (!XBEE_CAT1_LTE_SendAtCommand(\"ATIP\", ipProtoStr))\n    {\n        _XBEE_CAT1_Busy = false;\n        return ATMO_TCP_CLIENT_Status_Fail;\n    }\n\n    if (!XBEE_CAT1_LTE_ExitCommandMode())\n    {\n        _XBEE_CAT1_Busy = false;\n        return ATMO_TCP_CLIENT_Status_Fail;\n    }\n\n    _XBEE_CAT1_Busy = false;\n    return ATMO_TCP_CLIENT_Status_Success;\n}\n\nATMO_TCP_CLIENT_Status_t XBEE_CAT1_LTE_TCP_CLIENT_Disconnect(ATMO_DriverInstanceData_t *instance)\n{\n    return ATMO_TCP_CLIENT_Status_Success;\n}\n\nATMO_TCP_CLIENT_Status_t XBEE_CAT1_LTE_TCP_CLIENT_WriteBytes(ATMO_DriverInstanceData_t *instance, uint8_t *data, unsigned int dataLen)\n{\n    if (_XBEE_CAT1_Busy == true)\n    {\n        return ATMO_TCP_CLIENT_Status_Fail;\n    }\n\n    _XBEE_CAT1_Busy = true;\n    _XBEE_CAT1_LTE_Flush();\n\n    uint32_t nBytesSent = 0;\n    _XBEE_CAT1_TCP_CLIENT_NumBytesAvailable = 0;\n\n    if (ATMO_UART_WriteBlocking(_XBEE_CAT1_LTE_Config.uartInstance, (const char *)data, dataLen, &nBytesSent, 1000) != ATMO_UART_Status_Success)\n    {\n        return ATMO_TCP_CLIENT_Status_Fail;\n    }\n\n    if (nBytesSent != dataLen)\n    {\n        return ATMO_TCP_CLIENT_Status_Fail;\n    }\n\n    // Start receive process\n    _XBEE_CAT1_WaitingForResponse = true;\n\n    return ATMO_TCP_CLIENT_Status_Success;\n}\n\nATMO_TCP_CLIENT_Status_t XBEE_CAT1_LTE_TCP_CLIENT_SetReceiveCallback(ATMO_DriverInstanceData_t *instance, ATMO_Callback_t cb)\n{\n    _XBEE_CAT1_TCP_CLIENT_RxCB = cb;\n    return ATMO_TCP_CLIENT_Status_Success;\n}\n\nATMO_TCP_CLIENT_Status_t XBEE_CAT1_LTE_TCP_CLIENT_GetNumAvailableBytes(ATMO_DriverInstanceData_t *instance, uint32_t *numBytes, uint8_t **bytePtr)\n{\n    *numBytes = _XBEE_CAT1_TCP_CLIENT_NumBytesAvailable;\n    *bytePtr = (uint8_t *)_XBEE_CAT1_HttpPacketBuf;\n    return ATMO_TCP_CLIENT_Status_Success;\n}\n\nATMO_Status_t XBEE_CAT1_LTE_CELLULAR_AddDriverInstance(ATMO_DriverInstanceHandle_t *instanceNumber)\n{\n    static ATMO_DriverInstanceData_t xbeeCellularDriverInstanceData;\n\n    xbeeCellularDriverInstanceData.name = \"\";\n    xbeeCellularDriverInstanceData.initialized = false;\n    xbeeCellularDriverInstanceData.instanceNumber = 0;\n\n    return ATMO_CELLULAR_AddDriverInstance(&xbeeCellularDriverInstance, &xbeeCellularDriverInstanceData, instanceNumber);\n}\n\nATMO_CELLULAR_Status_t XBEE_CAT1_LTE_CELLULAR_Init(ATMO_DriverInstanceData_t *instance)\n{\n    return ATMO_CELLULAR_Status_Success;\n}\n\nATMO_CELLULAR_Status_t XBEE_CAT1_LTE_CELLULAR_DeInit(ATMO_DriverInstanceData_t *instance)\n{\n    return ATMO_CELLULAR_Status_Success;\n}\n\nATMO_CELLULAR_Status_t XBEE_CAT1_LTE_CELLULAR_GetConnectionStatus(ATMO_DriverInstanceData_t *instance, ATMO_CELLULAR_ConnectionStatus_t *status)\n{\n    ATMO_TCP_CLIENT_ConnectionStatus_t tcpStatus;\n\n    if (XBEE_CAT1_LTE_TCP_CLIENT_GetConnectionStatus(NULL, &tcpStatus) != ATMO_TCP_CLIENT_Status_Success)\n    {\n        return ATMO_CELLULAR_Status_Fail;\n    }\n\n    *status = (tcpStatus == ATMO_TCP_CLIENT_Connected) ? ATMO_CELLULAR_ConnectionStatus_Connected : ATMO_CELLULAR_ConnectionStatus_Disconnected;\n    return ATMO_CELLULAR_Status_Success;\n}"
+              }
+            }
+          },
+          "md5": "3b7e7f509a3b3bd2b1e74c753f5696db"
+        }
+      },
+      "drivers": {
+        "adc": [
+          {
+            "id": 0,
+            "name": "ATMO_DRIVERINSTANCE_ADC_ADC1"
+          }
+        ],
+        "ble": [],
+        "block": [
+          {
+            "id": 0,
+            "name": "ATMO_DRIVERINSTANCE_BLOCK_BLOCK1"
+          }
+        ],
+        "cellular": [
+          {
+            "name": "ATMO_DRIVERINSTANCE_CELLULAR_XbeeCat1Lte"
+          }
+        ],
+        "embeddedCloud": [
+          {
+            "name": "ATMO_DRIVERINSTANCE_EMBEDDEDCLOUD_XbeeCat1Lte"
+          }
+        ],
+        "datetime": [],
+        "filesytem": [
+          {
+            "id": 0,
+            "name": "ATMO_DRIVERINSTANCE_FILESYSTEM_FILESYSTEM1"
+          }
+        ],
+        "gpio": [
+          {
+            "id": 0,
+            "name": "ATMO_DRIVERINSTANCE_GPIO_GPIO1"
+          }
+        ],
+        "http": [],
+        "i2c": [
+          {
+            "id": 0,
+            "name": "ATMO_DRIVERINSTANCE_I2C_I2C1",
+            "primary": true
+          }
+        ],
+        "interval": [
+          {
+            "id": 0,
+            "name": "ATMO_DRIVERINSTANCE_INTERVAL_INTERVAL1"
+          }
+        ],
+        "nfc": [],
+        "pwm": [
+          {
+            "id": 0,
+            "name": "ATMO_DRIVERINSTANCE_PWM_PWM1"
+          }
+        ],
+        "spi": [
+          {
+            "id": 0,
+            "name": "ATMO_DRIVERINSTANCE_SPI_SPI1"
+          }
+        ],
+        "uart": [
+          {
+            "id": 0,
+            "name": "ATMO_DRIVERINSTANCE_UART_UART1"
+          },
+          {
+            "id": 1,
+            "name": "ATMO_DRIVERINSTANCE_UART_UART2"
+          }
+        ],
+        "wifi": []
+      },
+      "static": {
+        "header": "",
+        "footer": "",
+        "functions": {
+          "ATMO_Setup": {
+            "returnType": "void",
+            "code": "",
+            "arguments": []
+          }
+        }
+      }
+    },
+    "Application": {
+      "type": "app",
+      "compilerVersion": "latest",
+      "variants": [],
+      "meta": {
+        "appViewLayouts": {
+          "320": {
+            "560": true
+          }
+        }
+      },
+      "elements": []
+    },
+    "Cloud": {
+      "type": "cloud",
+      "compilerVersion": "latest",
+      "variants": [],
+      "meta": {},
+      "elements": [
+        {
+          "name": "TempEvent",
+          "type": "CloudEvent",
+          "variants": [
+            "cloud"
+          ],
+          "properties": {
+            "errorData": {},
+            "value": null,
+            "code": {
+              "trigger": "\treturn ATMO_Status_Success;",
+              "setup": "\n    \n\t\n\treturn ATMO_Status_Success;\n    ",
+              "sendEvent": "\n    \n\tif( ATMO_CLOUD_SendEvent(ATMO_PROPERTY(TempEvent, instance), ATMO_ELEMENT_NAME(TempEvent), in, 100) != ATMO_CLOUD_Status_Success )\n    {  \n        return ATMO_Status_Fail;\n    }\n\n\treturn ATMO_Status_Success;\n\t"
+            },
+            "variables": {},
+            "embeddedPropertyConversions": {},
+            "codeUserChanged": {
+              "setup": false,
+              "sendEvent": false
+            },
+            "instance": "ATMO_DRIVERINSTANCE_EMBEDDEDCLOUD_XbeeCat1Lte"
+          },
+          "meta": {
+            "editorX": 100,
+            "editorY": 0,
+            "lastTrigger": "eventReceived"
+          },
+          "triggers": {
+            "triggered": [],
+            "eventReceived": [
+              {
+                "mapping": {
+                  "value": {
+                    "code": "value"
+                  }
+                },
+                "targetOrder": [
+                  "value"
+                ],
+                "targetElement": "TempStorage",
+                "targetAbility": "addData"
+              }
+            ]
+          },
+          "coupledElementName": "TempEvent",
+          "coupledElementPlaneName": "Arduino Mega"
+        },
+        {
+          "name": "TempStorage",
+          "type": "CloudStorage",
+          "variants": [
+            "cloud"
+          ],
+          "properties": {
+            "errorData": null,
+            "value": null
+          },
+          "meta": {
+            "editorX": 200,
+            "editorY": 0,
+            "lastTrigger": "dataAdded"
+          },
+          "triggers": {
+            "triggered": [],
+            "dataAdded": [],
+            "dataUpdated": [],
+            "dataRemoved": [],
+            "dataQueried": []
+          }
+        }
+      ],
+      "layout": {
+        "height": 1000,
+        "width": 1000,
+        "zIndexOrder": []
+      }
+    }
+  }
+}
