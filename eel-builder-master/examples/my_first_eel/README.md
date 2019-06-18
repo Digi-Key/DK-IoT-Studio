@@ -9,7 +9,7 @@ This intent of this guide is to describe the step by step process of creating an
 Using your tool of choice, clone this repository to your local machine:
 `git clone git@github.com:atmosphereiot/eel-builder.git`
 
-Navigate to the newly created eel-builder directory and run `npm install` to install dependencies that the eel-builder needs.
+Navigate to the newly created eel-builder directory and run `sudo npm install` to install dependencies that the eel-builder needs.
 
 ## Step 3: Generate New EEL Directory
 Let's create a new directory to hold all of our EEL source and metadata. To do this, navigate to the eel-builder directory and run `node eelbuilder.js --new --name="relayclick" --dir="../"`
