@@ -1,0 +1,1349 @@
+{
+  "name": "TE Weather Shield Cellular Demo",
+  "createVersion": "2017-08-12",
+  "description": "Measure temperature data from the TSYS01 on the TE Weather Shield and send it to the cloud via the Digi XBEE Cat1 LTE Cellular Modem.",
+  "lastModified": "2019-02-28T14:02:11.488Z",
+  "created": "2019-02-28T14:02:11.488Z",
+  "meta": {
+    "projectTypeName": "Arduino Mega",
+    "projectTypeId": "mega"
+  },
+  "planes": {
+    "Arduino Mega": {
+      "type": "arduino",
+      "compilerVersion": "latest",
+      "variants": [
+        "mega"
+      ],
+      "meta": {},
+      "elements": [
+        {
+          "name": "TSYS01",
+          "type": "EmbeddedTSYS01",
+          "variants": [
+            "embedded",
+            "triggers",
+            "abilities",
+            "properties",
+            "variables"
+          ],
+          "properties": {
+            "errorData": {},
+            "code": {
+              "trigger": "\treturn ATMO_Status_Success;",
+              "setup": "    ATMO_TSYS01_Init(ATMO_PROPERTY(TSYS01, i2cInstance), ATMO_PROPERTY(TSYS01, i2cAddress), ATMO_PROPERTY(TSYS01, gpioInstance), ATMO_PROPERTY(TSYS01, weatherShield), ATMO_PROPERTY(TSYS01, weatherShieldCsA), ATMO_PROPERTY(TSYS01, weatherShieldCsB), ATMO_PROPERTY(TSYS01, weatherShieldEn));\r\n    return ATMO_Status_Success;",
+              "readTemperature": "    float temperature = 0;\r\n\r\n    if(ATMO_TSYS01_GetTemperature(&temperature) != ATMO_TSYS01_Status_Success)\r\n    {\r\n        return ATMO_Status_Fail;\r\n    }\r\n\r\n    ATMO_CreateValueFloat(out, temperature);\r\n    return ATMO_Status_Success;"
+            },
+            "variables": {},
+            "embeddedPropertyConversions": {},
+            "codeUserChanged": {
+              "setup": false,
+              "readTemperature": false
+            },
+            "i2cInstance": "ATMO_DRIVERINSTANCE_I2C_I2C1",
+            "gpioInstance": "ATMO_DRIVERINSTANCE_GPIO_GPIO1",
+            "i2cAddress": "0x77",
+            "weatherShield": true,
+            "weatherShieldCsA": 9,
+            "weatherShieldCsB": 10,
+            "weatherShieldEn": 11
+          },
+          "meta": {
+            "editorX": 397,
+            "editorY": 249,
+            "lastTrigger": "temperatureRead"
+          },
+          "triggers": {
+            "triggered": [],
+            "temperatureRead": [
+              {
+                "mapping": {},
+                "targetOrder": [],
+                "targetElement": "TSYS01Temp",
+                "targetAbility": "print"
+              },
+              {
+                "mapping": {},
+                "targetOrder": [],
+                "targetElement": "TempEvent",
+                "targetAbility": "sendEvent"
+              }
+            ]
+          },
+          "interruptAbilities": {
+            "trigger": false,
+            "setup": false,
+            "readTemperature": false
+          },
+          "abilities": [
+            {
+              "name": "trigger",
+              "triggers": [
+                "triggered"
+              ]
+            },
+            {
+              "name": "setup",
+              "triggers": []
+            },
+            {
+              "name": "readTemperature",
+              "triggers": [
+                "temperatureRead"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Interval",
+          "type": "EmbeddedInterval",
+          "variants": [
+            "embedded",
+            "triggers",
+            "abilities",
+            "properties",
+            "variables"
+          ],
+          "properties": {
+            "errorData": {},
+            "code": {
+              "trigger": "\treturn ATMO_Status_Success;",
+              "setup": "\n\tATMO_INTERVAL_Handle_t intervalHandle;\n    ATMO_INTERVAL_AddAbilityInterval(\n\t\tATMO_PROPERTY(Interval, instance), \n\t\tATMO_ABILITY(Interval, interval), \n\t\tATMO_PROPERTY(Interval, time), \n\t\t&intervalHandle\n\t);\n\t\n\treturn ATMO_Status_Success;\n\t",
+              "interval": "\treturn ATMO_Status_Success;"
+            },
+            "variables": {},
+            "embeddedPropertyConversions": {},
+            "codeUserChanged": {
+              "setup": false,
+              "interval": false
+            },
+            "instance": "ATMO_DRIVERINSTANCE_INTERVAL_INTERVAL1",
+            "time": "10000"
+          },
+          "meta": {
+            "editorX": 167,
+            "editorY": 240,
+            "lastTrigger": "interval"
+          },
+          "triggers": {
+            "triggered": [],
+            "interval": [
+              {
+                "mapping": {},
+                "targetOrder": [],
+                "targetElement": "TSYS01",
+                "targetAbility": "readTemperature"
+              }
+            ]
+          },
+          "interruptAbilities": {
+            "trigger": false,
+            "setup": false,
+            "interval": true
+          },
+          "abilities": [
+            {
+              "name": "trigger",
+              "triggers": [
+                "triggered"
+              ]
+            },
+            {
+              "name": "setup",
+              "triggers": []
+            },
+            {
+              "name": "interval",
+              "triggers": [
+                "interval"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "TSYS01Temp",
+          "type": "EmbeddedDebugPrint",
+          "variants": [
+            "embedded",
+            "triggers",
+            "abilities",
+            "properties",
+            "variables",
+            "debugPrint"
+          ],
+          "properties": {
+            "errorData": {},
+            "code": {
+              "trigger": "\treturn ATMO_Status_Success;",
+              "setup": "\n\treturn ATMO_Status_Success;\n\t",
+              "print": "\n    if((in != NULL) && (in->type != ATMO_DATATYPE_VOID))\n    {\n        char str[256];\n        unsigned int prependLen = strlen(ATMO_PROPERTY(TSYS01Temp, prepend));\n        // If there's text to prepend, do that first\n        if(prependLen > 0)\n        {\n            sprintf(str, \"%s: \", ATMO_PROPERTY(TSYS01Temp, prepend));\n            prependLen += 2; // Adding 2 chars for \": \"\n        }\n        \n        // Grab the string version of the input data, place it after the prepend text\n        if(ATMO_GetString(in, str + prependLen, 256 - prependLen) == ATMO_Status_Success)\n        {\n            ATMO_PLATFORM_DebugPrint(\"%s\\r\\n\", str);\n        }\n    }\n    else\n    {\n        ATMO_PLATFORM_DebugPrint(\"%s\\r\\n\", ATMO_PROPERTY(TSYS01Temp, prepend));\n    }\n    \n    return ATMO_Status_Success;\n    "
+            },
+            "variables": {},
+            "embeddedPropertyConversions": {
+              "prepend": "string"
+            },
+            "codeUserChanged": {
+              "setup": false,
+              "print": false
+            },
+            "prepend": "[TSYS01] Temp"
+          },
+          "meta": {
+            "editorX": 573,
+            "editorY": 303,
+            "lastTrigger": "printed"
+          },
+          "triggers": {
+            "triggered": [],
+            "printed": []
+          },
+          "interruptAbilities": {
+            "trigger": false,
+            "setup": false,
+            "print": false
+          },
+          "abilities": [
+            {
+              "name": "trigger",
+              "triggers": [
+                "triggered"
+              ]
+            },
+            {
+              "name": "setup",
+              "triggers": []
+            },
+            {
+              "name": "print",
+              "triggers": [
+                "printed"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "XbeeCat1Lte",
+          "type": "EmbeddedXbeeLteCat1",
+          "variants": [
+            "embedded",
+            "triggers",
+            "abilities",
+            "properties",
+            "variables"
+          ],
+          "properties": {
+            "errorData": {},
+            "code": {
+              "trigger": "\treturn ATMO_Status_Success;",
+              "setup": "    XBEE_CAT1_LTE_Config_t config;\n    config.uartInstance = ATMO_PROPERTY(XbeeCat1Lte, uartInstance);\n    config.driverType.type = ATMO_DRIVERTYPE_UART;\n    config.gpioInstance = ATMO_PROPERTY(XbeeCat1Lte, gpioInstance);\n    config.resetPin = ATMO_PROPERTY(XbeeCat1Lte, resetPin);\n    strncpy(config.phoneNumber, ATMO_PROPERTY(XbeeCat1Lte, phoneNumber), XBEE_CAT1_LTE_MAX_PHONE_LEN);\n\n    if(!XBEE_CAT1_LTE_Init(&config, &ATMO_INSTANCE(XbeeCat1Lte, CELLULAR), &ATMO_INSTANCE(XbeeCat1Lte, EMBEDDEDCLOUD)))\n    {\n        return ATMO_Status_Fail;\n    }\n\n    return ATMO_Status_Success;",
+              "sendSms": "    return XBEE_CAT1_LTE_SendSMS(in) ? ATMO_Status_Success : ATMO_Status_Fail;"
+            },
+            "variables": {},
+            "embeddedPropertyConversions": {
+              "phoneNumber": "string"
+            },
+            "codeUserChanged": {
+              "setup": false,
+              "sendSms": false
+            },
+            "uartInstance": "ATMO_DRIVERINSTANCE_UART_UART2",
+            "gpioInstance": "ATMO_DRIVERINSTANCE_GPIO_GPIO1",
+            "resetPin": "ATMO_GPIO_NO_PIN",
+            "phoneNumber": ""
+          },
+          "meta": {
+            "editorX": 257,
+            "editorY": 403,
+            "lastTrigger": "smsSent"
+          },
+          "triggers": {
+            "triggered": [],
+            "smsSent": []
+          },
+          "interruptAbilities": {
+            "trigger": false,
+            "setup": false,
+            "sendSms": false
+          },
+          "implements": [
+            "embeddedCloud",
+            "cellular"
+          ],
+          "abilities": [
+            {
+              "name": "trigger",
+              "triggers": [
+                "triggered"
+              ]
+            },
+            {
+              "name": "setup",
+              "triggers": []
+            },
+            {
+              "name": "sendSms",
+              "triggers": [
+                "smsSent"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "TempEvent",
+          "type": "EmbeddedCloudEvent",
+          "variants": [
+            "embedded",
+            "triggers",
+            "abilities",
+            "properties",
+            "variables",
+            "embeddedCloud"
+          ],
+          "properties": {
+            "errorData": {},
+            "code": {
+              "trigger": "\treturn ATMO_Status_Success;",
+              "setup": "\n    \n\t\n\treturn ATMO_Status_Success;\n    ",
+              "sendEvent": "\n    \n\tif( ATMO_CLOUD_SendEvent(ATMO_PROPERTY(TempEvent, instance), ATMO_ELEMENT_NAME(TempEvent), in, 100) != ATMO_CLOUD_Status_Success )\n    {  \n        return ATMO_Status_Fail;\n    }\n\n\treturn ATMO_Status_Success;\n\t"
+            },
+            "variables": {},
+            "embeddedPropertyConversions": {},
+            "codeUserChanged": {
+              "setup": false,
+              "sendEvent": false
+            },
+            "instance": "ATMO_DRIVERINSTANCE_EMBEDDEDCLOUD_XbeeCat1Lte"
+          },
+          "meta": {
+            "editorX": 569,
+            "editorY": 142,
+            "lastTrigger": "eventSent"
+          },
+          "triggers": {
+            "triggered": [],
+            "eventSent": []
+          },
+          "interruptAbilities": {
+            "trigger": false,
+            "setup": false,
+            "sendEvent": false
+          },
+          "abilities": [
+            {
+              "name": "trigger",
+              "triggers": [
+                "triggered"
+              ]
+            },
+            {
+              "name": "setup",
+              "triggers": []
+            },
+            {
+              "name": "sendEvent",
+              "triggers": [
+                "eventSent"
+              ]
+            }
+          ]
+        }
+      ],
+      "libraries": {
+        "htu21d": {
+          "libName": "htu21d",
+          "manufacturer": "TEConnectivity",
+          "description": "Temperature/Humidity Sensor",
+          "version": "",
+          "type": "Temperature/Humidity Sensor",
+          "eelVersion": "3",
+          "shoppingCartLinks": {
+            "digikey": {
+              "links": {
+                "info": "https://www.digikey.com/product-detail/en/te-connectivity-measurement-specialties/DPP902S000/223-1786-ND/6685752"
+              },
+              "cartData": {
+                "part": "223-1786-ND",
+                "partid": "6685752",
+                "source": "dkstudio",
+                "qty": "1"
+              }
+            }
+          },
+          "requires": [
+            "embedded",
+            "i2c"
+          ],
+          "elements": [
+            {
+              "name": "HTU21D",
+              "type": "EmbeddedHTU21D",
+              "icon": "EmbeddedTempHumidity.svg",
+              "defaultAbility": "readTemperature",
+              "defaultTrigger": "temperatureRead",
+              "hidden": false,
+              "abilities": [
+                {
+                  "name": "setup",
+                  "hidden": true,
+                  "triggers": [],
+                  "code": "    return ATMO_HTU21D_Init(ATMO_PROPERTY(undefined, i2cInstance), ATMO_PROPERTY(undefined, gpioInstance), ATMO_PROPERTY(undefined, weatherShield), ATMO_PROPERTY(undefined, weatherShieldCsA), ATMO_PROPERTY(undefined, weatherShieldCsB), ATMO_PROPERTY(undefined, weatherShieldEn)) == ATMO_HTU21D_Status_Success ? ATMO_Status_Success : ATMO_Status_Fail;\r\n"
+                },
+                {
+                  "name": "readTemperature",
+                  "triggers": [
+                    "temperatureRead"
+                  ],
+                  "code": "    float temperature = 0.0;\r\n    if( ATMO_HTU21D_GetTemperature(&temperature) != ATMO_HTU21D_Status_Success )\r\n    {\r\n        return ATMO_Status_Fail;\r\n    }\r\n\r\n    ATMO_CreateValueFloat(out, temperature);\r\n    return ATMO_Status_Success;"
+                },
+                {
+                  "name": "readHumidity",
+                  "triggers": [
+                    "humidityRead"
+                  ],
+                  "code": "    float humidity = 0.0;\r\n    if( ATMO_HTU21D_GetHumidity(&humidity) != ATMO_HTU21D_Status_Success )\r\n    {\r\n        return ATMO_Status_Fail;\r\n    }\r\n\r\n    ATMO_CreateValueFloat(out, humidity);\r\n    return ATMO_Status_Success;"
+                }
+              ],
+              "properties": [
+                {
+                  "name": "i2cInstance",
+                  "input": "driverInstance",
+                  "driverType": "i2c"
+                },
+                {
+                  "name": "gpioInstance",
+                  "input": "driverInstance",
+                  "driverType": "gpio"
+                },
+                {
+                  "name": "weatherShield",
+                  "input": "checkbox",
+                  "value": true
+                },
+                {
+                  "name": "weatherShieldCsA",
+                  "input": "number",
+                  "value": 9
+                },
+                {
+                  "name": "weatherShieldCsB",
+                  "input": "number",
+                  "value": 10
+                },
+                {
+                  "name": "weatherShieldEn",
+                  "input": "number",
+                  "value": 11
+                }
+              ],
+              "triggers": [],
+              "variables": [],
+              "language": {
+                "en-US": {
+                  "EmbeddedHTU21D": "HTU21D Climate",
+                  "i2cInstance": "I2C Driver Instance",
+                  "gpioInstance": "GPIO Driver Instance",
+                  "readTemperature": "Read Temperature (°C)",
+                  "readHumidity": "Read Humidity (%rh)",
+                  "temperatureRead": "Temperature Read",
+                  "humidityRead": "Humidity Read",
+                  "weatherShield": "TE Arduino Weather Shield",
+                  "weatherShieldCsA": "Weather Shield CSA Pin",
+                  "weatherShieldCsB": "Weather Shield CSB Pin",
+                  "weatherShieldEn": "Weather Shield EN Pin"
+                }
+              }
+            }
+          ],
+          "files": {
+            "common": {
+              "headers": {
+                "htu21d.h": "#ifndef __ATMO_HTU21D_H_\r\n#define __ATMO_HTU21D_H_\r\n\r\n#include \"../atmo/core.h\"\r\n#include \"../app_src/atmosphere_platform.h\"\r\n\r\ntypedef enum {\r\n    ATMO_HTU21D_Status_Success              = 0x00u,  // Common - Operation was successful\r\n    ATMO_HTU21D_Status_Fail                 = 0x01u,  // Common - Operation failed\r\n    ATMO_HTU21D_Status_Initialized          = 0x02u,  // Common - Peripheral already initialized\r\n    ATMO_HTU21D_Status_Invalid              = 0x03u,  // Common - Invalid operation or result\r\n    ATMO_HTU21D_Status_NotSupported         = 0x04u,  // Common - Feature not supported by platform\r\n} ATMO_HTU21D_Status_t;\r\n\r\n/**\r\n * @brief Initialize HTU21D Driver\r\n * \r\n * @param i2cDriverInstance \r\n * @param gpioInstance \r\n * @param weatherShieldEnable \r\n * @param weatherShieldCsA \r\n * @param weatherShieldCsB \r\n * @param weatherShieldEn \r\n * @return ATMO_HTU21D_Status_t \r\n */\r\nATMO_HTU21D_Status_t ATMO_HTU21D_Init(ATMO_DriverInstanceHandle_t i2cInstance, ATMO_DriverInstanceHandle_t gpioInstance, bool weatherShieldEnable, ATMO_GPIO_Device_Pin_t weatherShieldCsA, ATMO_GPIO_Device_Pin_t weatherShieldCsB, ATMO_GPIO_Device_Pin_t weatherShieldEn);\r\n\r\n/**\r\n * Get Temperature in degrees celsius\r\n * \r\n * @param[out] temperature\r\n */\r\nATMO_HTU21D_Status_t ATMO_HTU21D_GetTemperature(float *temperatureCelsius);\r\n\r\n/**\r\n * Get Humidity in %rh\r\n * \r\n * @param[out] humidity\r\n */\r\nATMO_HTU21D_Status_t ATMO_HTU21D_GetHumidity(float *humidityRh);\r\n\r\n\r\n\r\n#endif\r\n"
+              },
+              "objects": {
+                "htu21d.c": "#include \"htu21d.h\"\r\n#include \"../i2c/i2c.h\"\r\n#include \"../app_src/atmosphere_platform.h\"\r\n#include \"../gpio/gpio.h\"\r\n\r\n/** Default I2C address for the HTU21D. */\r\n#define HTU21DF_I2CADDR         (0x40)\r\n\r\n/** Read temperature register. */\r\n#define HTU21DF_READTEMP        (0xE3)\r\n\r\n/** Read humidity register. */\r\n#define HTU21DF_READHUM         (0xE5)\r\n\r\n/** Write register command. */\r\n#define HTU21DF_WRITEREG        (0xE6)\r\n\r\n/** Read register command. */\r\n#define HTU21DF_READREG         (0xE7)\r\n\r\n/** Reset command. */\r\n#define HTU21DF_RESET           (0xFE)\r\n\r\nstatic ATMO_DriverInstanceHandle_t _ATMO_HTU21D_I2CInstance = 0;\r\nstatic ATMO_DriverInstanceHandle_t _ATMO_HTU21D_GpioInstance = 0;\r\n\r\nstatic bool _ATMO_HTU21D_WeatherShieldEnable = false;\r\nstatic ATMO_GPIO_Device_Pin_t _ATMO_HTU21D_weatherShieldCsA = 0;\r\nstatic ATMO_GPIO_Device_Pin_t _ATMO_HTU21D_weatherShieldCsB = 0;\r\nstatic ATMO_GPIO_Device_Pin_t _ATMO_HTU21D_weatherShieldEn = 0;\r\n\r\nstatic void HTU21D_enableChipWeatherShield()\r\n{\r\n\tif(_ATMO_HTU21D_WeatherShieldEnable)\r\n\t{\r\n\t\tATMO_GPIO_SetPinState(_ATMO_HTU21D_GpioInstance, _ATMO_HTU21D_weatherShieldCsA, ATMO_GPIO_PinState_Low);\r\n\t\tATMO_GPIO_SetPinState(_ATMO_HTU21D_GpioInstance, _ATMO_HTU21D_weatherShieldCsB, ATMO_GPIO_PinState_Low);\r\n\t\tATMO_GPIO_SetPinState(_ATMO_HTU21D_GpioInstance, _ATMO_HTU21D_weatherShieldEn, ATMO_GPIO_PinState_Low);\r\n\t}\r\n}\r\n\r\nstatic bool _ATMO_HT21D_IsPresent()\r\n{\r\n    uint8_t cmd = HTU21DF_READREG;\r\n    uint8_t data = 0x0;\r\n    ATMO_I2C_Status_t status = ATMO_I2C_MasterRead(_ATMO_HTU21D_I2CInstance, HTU21DF_I2CADDR, &cmd, 1, &data, 1, 1000);\r\n    return (status == ATMO_I2C_Status_Success) && (data == 0x02);\r\n}\r\n\r\nstatic bool _ATMO_HT21D_Reset()\r\n{\r\n    uint8_t cmd = HTU21DF_RESET;\r\n    return ATMO_I2C_MasterWrite(_ATMO_HTU21D_I2CInstance, HTU21DF_I2CADDR, NULL, 0, &cmd, 1, 1000) == ATMO_I2C_Status_Success;\r\n}\r\n\r\nATMO_HTU21D_Status_t ATMO_HTU21D_Init(ATMO_DriverInstanceHandle_t i2cInstance, ATMO_DriverInstanceHandle_t gpioInstance, bool weatherShieldEnable, ATMO_GPIO_Device_Pin_t weatherShieldCsA, ATMO_GPIO_Device_Pin_t weatherShieldCsB, ATMO_GPIO_Device_Pin_t weatherShieldEn)\r\n{\r\n\t_ATMO_HTU21D_I2CInstance = i2cInstance;\r\n\t_ATMO_HTU21D_GpioInstance = gpioInstance;\r\n\t_ATMO_HTU21D_WeatherShieldEnable = weatherShieldEnable;\r\n\t_ATMO_HTU21D_weatherShieldCsA = weatherShieldCsA;\r\n\t_ATMO_HTU21D_weatherShieldCsB = weatherShieldCsB;\r\n\t_ATMO_HTU21D_weatherShieldEn = weatherShieldEn;\r\n\r\n\tif( _ATMO_HTU21D_WeatherShieldEnable )\r\n\t{\r\n\t\tATMO_GPIO_Config_t gpio;\r\n\t\tgpio.pinMode = ATMO_GPIO_PinMode_Output_PushPull;\r\n\t\tgpio.initialState = ATMO_GPIO_PinState_Low;\r\n\t\tATMO_GPIO_SetPinConfiguration(_ATMO_HTU21D_GpioInstance, _ATMO_HTU21D_weatherShieldCsA, &gpio);\r\n\t\tATMO_GPIO_SetPinConfiguration(_ATMO_HTU21D_GpioInstance, _ATMO_HTU21D_weatherShieldCsB, &gpio);\r\n\t\tATMO_GPIO_SetPinConfiguration(_ATMO_HTU21D_GpioInstance, _ATMO_HTU21D_weatherShieldEn, &gpio);\r\n\t}\r\n\r\n\tHTU21D_enableChipWeatherShield();\r\n\r\n    // Send a reset command\r\n    if(!_ATMO_HT21D_Reset())\r\n    {\r\n        return ATMO_HTU21D_Status_Fail;\r\n    }\r\n\r\n    ATMO_PLATFORM_DelayMilliseconds(20);\r\n\r\n    if(!_ATMO_HT21D_IsPresent())\r\n    {\r\n        ATMO_PLATFORM_DebugPrint(\"[HTU21D] Sensor Not Found\\r\\n\");\r\n        return ATMO_HTU21D_Status_Fail;\r\n    }\r\n\r\n    return ATMO_HTU21D_Status_Success;\r\n}\r\n\r\nATMO_HTU21D_Status_t ATMO_HTU21D_GetTemperature(float *temperatureCelsius)\r\n{\r\n    HTU21D_enableChipWeatherShield();\r\n    uint8_t tmpBuf[3] = {0};\r\n    uint8_t cmd = HTU21DF_READTEMP;\r\n\r\n    ATMO_I2C_Status_t status = ATMO_I2C_MasterRead(_ATMO_HTU21D_I2CInstance, HTU21DF_I2CADDR, &cmd, 1, tmpBuf, 3, 1000);\r\n\r\n    if(status != ATMO_I2C_Status_Success)\r\n    {\r\n        ATMO_PLATFORM_DebugPrint(\"[HTU21D] I2C Error %d\\r\\n\", status);\r\n        return ATMO_HTU21D_Status_Fail;\r\n    }\r\n\r\n    /* Read 16 bits of data, dropping the last two status bits. */\r\n    uint16_t data = (tmpBuf[0] << 8) | (tmpBuf[1] & 0b11111100);\r\n\r\n    *temperatureCelsius = data;\r\n    (*temperatureCelsius) *= 175.72f;\r\n    (*temperatureCelsius) /= 65536.0f;\r\n    (*temperatureCelsius) -= 46.85f;\r\n    return ATMO_HTU21D_Status_Success;\r\n}\r\n\r\n/**\r\n * Get Humidity in %rh\r\n * \r\n * @param[out] humidity\r\n */\r\nATMO_HTU21D_Status_t ATMO_HTU21D_GetHumidity(float *humidityRh)\r\n{\r\n    HTU21D_enableChipWeatherShield();\r\n    uint8_t tmpBuf[3] = {0};\r\n    uint8_t cmd = HTU21DF_READHUM;\r\n\r\n    ATMO_I2C_Status_t status = ATMO_I2C_MasterRead(_ATMO_HTU21D_I2CInstance, HTU21DF_I2CADDR, &cmd, 1, tmpBuf, 3, 1000);\r\n\r\n    if(status != ATMO_I2C_Status_Success)\r\n    {\r\n        return ATMO_HTU21D_Status_Fail;\r\n    }\r\n\r\n    /* Read 16 bits of data, dropping the last two status bits. */\r\n    uint16_t data = (tmpBuf[0] << 8) | (tmpBuf[1] & 0b11111100);\r\n\r\n    *humidityRh = data;\r\n    (*humidityRh) *= 125.0f;\r\n    (*humidityRh) /= 65536.0f;\r\n    (*humidityRh) -= 6.0f;\r\n    return ATMO_HTU21D_Status_Success;\r\n}\r\n"
+              }
+            }
+          },
+          "md5": "1499efacd833f099568f976f423bc2d6"
+        },
+        "ms5637": {
+          "libName": "ms5637",
+          "manufacturer": "TEConnectivity",
+          "description": "Pressure Sensor",
+          "type": "Pressure Sensor",
+          "version": "",
+          "eelVersion": "3",
+          "shoppingCartLinks": {
+            "digikey": {
+              "links": {
+                "info": "https://www.digikey.com/product-detail/en/te-connectivity-measurement-specialties/DPP902S000/223-1786-ND/6685752"
+              },
+              "cartData": {
+                "part": "223-1786-ND",
+                "partid": "6685752",
+                "source": "dkstudio",
+                "qty": "1"
+              }
+            }
+          },
+          "requires": [
+            "embedded",
+            "i2c"
+          ],
+          "elements": [
+            {
+              "name": "MS5637",
+              "type": "EmbeddedMS5637",
+              "icon": "EmbeddedPressure.svg",
+              "defaultAbility": "readPressure",
+              "defaultTrigger": "pressureRead",
+              "hidden": false,
+              "abilities": [
+                {
+                  "name": "setup",
+                  "hidden": true,
+                  "triggers": [],
+                  "code": "    ms5637_init(ATMO_PROPERTY(undefined, i2cInstance), ATMO_PROPERTY(undefined, gpioInstance), ATMO_PROPERTY(undefined, weatherShield), ATMO_PROPERTY(undefined, weatherShieldCsA), ATMO_PROPERTY(undefined, weatherShieldCsB), ATMO_PROPERTY(undefined, weatherShieldEn));\r\n    return ATMO_Status_Success;"
+                },
+                {
+                  "name": "readTemperature",
+                  "triggers": [
+                    "temperatureRead"
+                  ],
+                  "code": "    float temperature, pressure;\r\n    if( ms5637_read_temperature_and_pressure(&temperature, &pressure) != ms5637_status_ok )\r\n    {\r\n        return ATMO_Status_Fail;\r\n    }\r\n\r\n    ATMO_CreateValueFloat(out, temperature);\r\n    return ATMO_Status_Success;"
+                },
+                {
+                  "name": "readPressure",
+                  "triggers": [
+                    "pressureRead"
+                  ],
+                  "code": "    float temperature, pressure;\r\n    if( ms5637_read_temperature_and_pressure(&temperature, &pressure) != ms5637_status_ok )\r\n    {\r\n        return ATMO_Status_Fail;\r\n    }\r\n\r\n    ATMO_CreateValueFloat(out, pressure);\r\n    return ATMO_Status_Success;"
+                }
+              ],
+              "properties": [
+                {
+                  "name": "i2cInstance",
+                  "input": "driverInstance",
+                  "driverType": "i2c"
+                },
+                {
+                  "name": "gpioInstance",
+                  "input": "driverInstance",
+                  "driverType": "gpio"
+                },
+                {
+                  "name": "weatherShield",
+                  "input": "checkbox",
+                  "value": true
+                },
+                {
+                  "name": "weatherShieldCsA",
+                  "input": "number",
+                  "value": 9
+                },
+                {
+                  "name": "weatherShieldCsB",
+                  "input": "number",
+                  "value": 10
+                },
+                {
+                  "name": "weatherShieldEn",
+                  "input": "number",
+                  "value": 11
+                }
+              ],
+              "triggers": [],
+              "variables": [],
+              "language": {
+                "en-US": {
+                  "EmbeddedMS5637": "MS5637 Pressure",
+                  "i2cInstance": "I2C Driver Instance",
+                  "gpioInstance": "GPIO Driver Instance",
+                  "readTemperature": "Read Temperature (°C)",
+                  "readPressure": "Read Pressure (mbar)",
+                  "temperatureRead": "Temperature Read",
+                  "pressureRead": "Pressure Read",
+                  "weatherShield": "TE Arduino Weather Shield",
+                  "weatherShieldCsA": "Weather Shield CSA Pin",
+                  "weatherShieldCsB": "Weather Shield CSB Pin",
+                  "weatherShieldEn": "Weather Shield EN Pin"
+                }
+              }
+            }
+          ],
+          "files": {
+            "common": {
+              "headers": {
+                "ms5637.h": "#ifndef _ATMO_MS5637_H_\r\n#define _ATMO_MS5637_H_\r\n\r\n#include \"../app_src/atmosphere_platform.h\"\r\n#include \"../atmo/core.h\"\r\n\r\n\r\n#ifdef __cplusplus\r\n  extern \"C\" {\r\n#endif\r\n\r\n\r\n#define MS5637_COEFFICIENT_COUNT 7\r\n\r\n#define MS5637_CONVERSION_TIME_OSR_256 1\r\n#define MS5637_CONVERSION_TIME_OSR_512 2\r\n#define MS5637_CONVERSION_TIME_OSR_1024 3\r\n#define MS5637_CONVERSION_TIME_OSR_2048 5\r\n#define MS5637_CONVERSION_TIME_OSR_4096 9\r\n#define MS5637_CONVERSION_TIME_OSR_8192 17\r\n\r\n// Enum\r\nenum ms5637_resolution_osr {\r\n  ms5637_resolution_osr_256 = 0,\r\n  ms5637_resolution_osr_512,\r\n  ms5637_resolution_osr_1024,\r\n  ms5637_resolution_osr_2048,\r\n  ms5637_resolution_osr_4096\r\n};\r\n\r\nenum ms5637_status {\r\n  ms5637_status_ok,\r\n  ms5637_status_no_i2c_acknowledge,\r\n  ms5637_status_i2c_transfer_error,\r\n  ms5637_status_crc_error\r\n};\r\n\r\nenum ms5637_status_code {\r\n  ms5637_STATUS_OK = 0,\r\n  ms5637_STATUS_ERR_OVERFLOW = 1,\r\n  ms5637_STATUS_ERR_TIMEOUT = 4\r\n};\r\n\r\n// Functions\r\nvoid ms5637_init(ATMO_DriverInstanceHandle_t i2cInstance, ATMO_DriverInstanceHandle_t gpioInstance, bool weatherShieldEnable, ATMO_GPIO_Device_Pin_t weatherShieldCsA, ATMO_GPIO_Device_Pin_t weatherShieldCsB, ATMO_GPIO_Device_Pin_t weatherShieldEn);\r\n\r\n\r\n  /**\r\n  * \\brief Reset the MS5637 device\r\n  *\r\n  * \\return ms5637_status : status of MS5637\r\n  *       - ms5637_status_ok : I2C transfer completed successfully\r\n  *       - ms5637_status_i2c_transfer_error : Problem with i2c transfer\r\n  *       - ms5637_status_no_i2c_acknowledge : I2C did not acknowledge\r\n  */\r\n  enum ms5637_status ms5637_reset(void);\r\n\r\n  /**\r\n  * \\brief Set  ADC resolution.\r\n  *\r\n  * \\param[in] ms5637_resolution_osr : Resolution requested\r\n  *\r\n  */\r\n  void ms5637_set_resolution(enum ms5637_resolution_osr res);\r\n\r\n  /**\r\n  * \\brief Reads the temperature and pressure ADC value and compute the\r\n  * compensated values.\r\n  *\r\n  * \\param[out] float* : Celsius Degree temperature value\r\n  * \\param[out] float* : mbar pressure value\r\n  *\r\n  * \\return ms5637_status : status of MS5637\r\n  *       - ms5637_status_ok : I2C transfer completed successfully\r\n  *       - ms5637_status_i2c_transfer_error : Problem with i2c transfer\r\n  *       - ms5637_status_no_i2c_acknowledge : I2C did not acknowledge\r\n  *       - ms5637_status_crc_error : CRC check error on on the PROM\r\n  * coefficients\r\n  */\r\n  enum ms5637_status ms5637_read_temperature_and_pressure(float *temperature,\r\n                                                   float *pressure);\r\n\r\n\r\n\r\n#ifdef __cplusplus\r\n  }\r\n#endif\r\n\r\n#endif"
+              },
+              "objects": {
+                "ms5637.c": "#include \"ms5637.h\"\r\n#include \"../i2c/i2c.h\"\r\n#include \"../gpio/gpio.h\"\r\n\r\n// Constants\r\n\r\n// MS5637 device address\r\n#define MS5637_ADDR 0x76 // 0b1110110\r\n\r\n// MS5637 device commands\r\n#define MS5637_RESET_COMMAND 0x1E\r\n#define MS5637_START_PRESSURE_ADC_CONVERSION 0x40\r\n#define MS5637_START_TEMPERATURE_ADC_CONVERSION 0x50\r\n#define MS5637_READ_ADC 0x00\r\n\r\n#define MS5637_CONVERSION_OSR_MASK 0x0F\r\n\r\n// MS5637 commands\r\n#define MS5637_PROM_ADDRESS_READ_ADDRESS_0 0xA0\r\n#define MS5637_PROM_ADDRESS_READ_ADDRESS_1 0xA2\r\n#define MS5637_PROM_ADDRESS_READ_ADDRESS_2 0xA4\r\n#define MS5637_PROM_ADDRESS_READ_ADDRESS_3 0xA6\r\n#define MS5637_PROM_ADDRESS_READ_ADDRESS_4 0xA8\r\n#define MS5637_PROM_ADDRESS_READ_ADDRESS_5 0xAA\r\n#define MS5637_PROM_ADDRESS_READ_ADDRESS_6 0xAC\r\n#define MS5637_PROM_ADDRESS_READ_ADDRESS_7 0xAE\r\n\r\n// Coefficients indexes for temperature and pressure computation\r\n#define MS5637_CRC_INDEX 0\r\n#define MS5637_PRESSURE_SENSITIVITY_INDEX 1\r\n#define MS5637_PRESSURE_OFFSET_INDEX 2\r\n#define MS5637_TEMP_COEFF_OF_PRESSURE_SENSITIVITY_INDEX 3\r\n#define MS5637_TEMP_COEFF_OF_PRESSURE_OFFSET_INDEX 4\r\n#define MS5637_REFERENCE_TEMPERATURE_INDEX 5\r\n#define MS5637_TEMP_COEFF_OF_TEMPERATURE_INDEX 6\r\n\r\nstatic uint16_t ms5637_eeprom_coeff[MS5637_COEFFICIENT_COUNT + 1];\r\nstatic bool ms5637_coeff_read = false;\r\nstatic enum ms5637_resolution_osr ms5637_resolution_osr;\r\nstatic uint32_t ms5637_conversion_time[6] = {\r\n\tMS5637_CONVERSION_TIME_OSR_256,  MS5637_CONVERSION_TIME_OSR_512,\r\n\tMS5637_CONVERSION_TIME_OSR_1024, MS5637_CONVERSION_TIME_OSR_2048,\r\n\tMS5637_CONVERSION_TIME_OSR_4096, MS5637_CONVERSION_TIME_OSR_8192};\r\n\r\n\r\nstatic ATMO_DriverInstanceHandle_t _ATMO_MS5637_I2CInstance = 0;\r\nstatic ATMO_DriverInstanceHandle_t _ATMO_MS5637_GpioInstance = 0;\r\n\r\nstatic bool _ATMO_MS5637_WeatherShieldEnable = false;\r\nstatic ATMO_GPIO_Device_Pin_t _ATMO_MS5637_weatherShieldCsA = 0;\r\nstatic ATMO_GPIO_Device_Pin_t _ATMO_MS5637_weatherShieldCsB = 0;\r\nstatic ATMO_GPIO_Device_Pin_t _ATMO_MS5637_weatherShieldEn = 0;\r\n\r\nstatic void MS5637_enableChipWeatherShield()\r\n{\r\n\tif(_ATMO_MS5637_WeatherShieldEnable)\r\n\t{\r\n\t\tATMO_GPIO_SetPinState(_ATMO_MS5637_GpioInstance, _ATMO_MS5637_weatherShieldCsA, ATMO_GPIO_PinState_Low);\r\n\t\tATMO_GPIO_SetPinState(_ATMO_MS5637_GpioInstance, _ATMO_MS5637_weatherShieldCsB, ATMO_GPIO_PinState_Low);\r\n\t\tATMO_GPIO_SetPinState(_ATMO_MS5637_GpioInstance, _ATMO_MS5637_weatherShieldEn, ATMO_GPIO_PinState_Low);\r\n\t}\r\n}\r\n\r\n/**\r\n* \\brief Class constructor\r\n*\r\n*/\r\nvoid ms5637_init(ATMO_DriverInstanceHandle_t i2cInstance, ATMO_DriverInstanceHandle_t gpioInstance, bool weatherShieldEnable, ATMO_GPIO_Device_Pin_t weatherShieldCsA, ATMO_GPIO_Device_Pin_t weatherShieldCsB, ATMO_GPIO_Device_Pin_t weatherShieldEn)\r\n{\r\n\t_ATMO_MS5637_I2CInstance = i2cInstance;\r\n\t_ATMO_MS5637_WeatherShieldEnable = weatherShieldEnable;\r\n\t_ATMO_MS5637_weatherShieldCsA = weatherShieldCsA;\r\n\t_ATMO_MS5637_weatherShieldCsB = weatherShieldCsB;\r\n\t_ATMO_MS5637_weatherShieldEn = weatherShieldEn;\r\n\r\n\tif( _ATMO_MS5637_WeatherShieldEnable )\r\n\t{\r\n\t\tATMO_GPIO_Config_t gpio;\r\n\t\tgpio.pinMode = ATMO_GPIO_PinMode_Output_PushPull;\r\n\t\tgpio.initialState = ATMO_GPIO_PinState_Low;\r\n\t\tATMO_GPIO_SetPinConfiguration(_ATMO_MS5637_GpioInstance, _ATMO_MS5637_weatherShieldCsA, &gpio);\r\n\t\tATMO_GPIO_SetPinConfiguration(_ATMO_MS5637_GpioInstance, _ATMO_MS5637_weatherShieldCsB, &gpio);\r\n\t\tATMO_GPIO_SetPinConfiguration(_ATMO_MS5637_GpioInstance, _ATMO_MS5637_weatherShieldEn, &gpio);\r\n\t}\r\n  \r\n}\r\n\r\n/**\r\n* \\brief Writes the MS5637 8-bits command with the value passed\r\n*\r\n* \\param[in] uint8_t : Command value to be written.\r\n*\r\n* \\return ms5637_status : status of MS5637\r\n*       - ms5637_status_ok : I2C transfer completed successfully\r\n*       - ms5637_status_i2c_transfer_error : Problem with i2c transfer\r\n*       - ms5637_status_no_i2c_acknowledge : I2C did not acknowledge\r\n*/\r\nstatic enum ms5637_status write_command(uint8_t cmd) {\r\n\r\n  if( ATMO_I2C_MasterWrite(_ATMO_MS5637_I2CInstance, MS5637_ADDR, NULL, 0, &cmd, 1, 1000) != ATMO_I2C_Status_Success )\r\n  {\r\n\t  return ms5637_status_i2c_transfer_error;\r\n  }\r\n\r\n  return ms5637_status_ok;\r\n}\r\n\r\n/**\r\n* \\brief Set  ADC resolution.\r\n*\r\n* \\param[in] ms5637_resolution_osr : Resolution requested\r\n*\r\n*/\r\nvoid ms5637_set_resolution(enum ms5637_resolution_osr res) {\r\n  ms5637_resolution_osr = res;\r\n}\r\n\r\n/**\r\n* \\brief Reset the MS5637 device\r\n*\r\n* \\return ms5637_status : status of MS5637\r\n*       - ms5637_status_ok : I2C transfer completed successfully\r\n*       - ms5637_status_i2c_transfer_error : Problem with i2c transfer\r\n*       - ms5637_status_no_i2c_acknowledge : I2C did not acknowledge\r\n*/\r\nenum ms5637_status ms5637_reset(void) {\r\n  MS5637_enableChipWeatherShield();\r\n  return write_command(MS5637_RESET_COMMAND);\r\n}\r\n\r\n/**\r\n* \\brief Reads the ms5637 EEPROM coefficient stored at address provided.\r\n*\r\n* \\param[in] uint8_t : Address of coefficient in EEPROM\r\n* \\param[out] uint16_t* : Value read in EEPROM\r\n*\r\n* \\return ms5637_status : status of MS5637\r\n*       - ms5637_status_ok : I2C transfer completed successfully\r\n*       - ms5637_status_i2c_transfer_error : Problem with i2c transfer\r\n*       - ms5637_status_no_i2c_acknowledge : I2C did not acknowledge\r\n*       - ms5637_status_crc_error : CRC check error on the coefficients\r\n*/\r\nstatic enum ms5637_status ms5637_read_ms5637_eeprom_coeff(uint8_t command, uint16_t *coeff) {\r\n  uint8_t buffer[2];\r\n  uint8_t i;\r\n  uint8_t i2c_status;\r\n\r\n  buffer[0] = 0;\r\n  buffer[1] = 0;\r\n\r\n  if(ATMO_I2C_MasterRead(_ATMO_MS5637_I2CInstance, MS5637_ADDR, &command, 1, buffer, 2, 1000) != ATMO_I2C_Status_Success)\r\n  {\r\n\t  return ms5637_status_i2c_transfer_error;\r\n  }\r\n\r\n  *coeff = (buffer[0] << 8) | buffer[1];\r\n\r\n  return ms5637_status_ok;\r\n}\r\n\r\n/**\r\n* \\brief CRC check\r\n*\r\n* \\param[in] uint16_t *: List of EEPROM coefficients\r\n* \\param[in] uint8_t : crc to compare with\r\n*\r\n* \\return bool : TRUE if CRC is OK, FALSE if KO\r\n*/\r\nstatic bool ms5637_crc_check(uint16_t *n_prom, uint8_t crc) {\r\n  uint8_t cnt, n_bit;\r\n  uint16_t n_rem, crc_read;\r\n\r\n  n_rem = 0x00;\r\n  crc_read = n_prom[0];\r\n  n_prom[MS5637_COEFFICIENT_COUNT] = 0;\r\n  n_prom[0] = (0x0FFF & (n_prom[0])); // Clear the CRC byte\r\n\r\n  for (cnt = 0; cnt < (MS5637_COEFFICIENT_COUNT + 1) * 2; cnt++) {\r\n\r\n    // Get next byte\r\n    if (cnt % 2 == 1)\r\n      n_rem ^= n_prom[cnt >> 1] & 0x00FF;\r\n    else\r\n      n_rem ^= n_prom[cnt >> 1] >> 8;\r\n\r\n    for (n_bit = 8; n_bit > 0; n_bit--) {\r\n\r\n      if (n_rem & 0x8000)\r\n        n_rem = (n_rem << 1) ^ 0x3000;\r\n      else\r\n        n_rem <<= 1;\r\n    }\r\n  }\r\n  n_rem >>= 12;\r\n  n_prom[0] = crc_read;\r\n\r\n  return (n_rem == crc);\r\n}\r\n\r\n/**\r\n* \\brief Reads the ms5637 EEPROM coefficients to store them for computation.\r\n*\r\n* \\return ms5637_status : status of MS5637\r\n*       - ms5637_status_ok : I2C transfer completed successfully\r\n*       - ms5637_status_i2c_transfer_error : Problem with i2c transfer\r\n*       - ms5637_status_no_i2c_acknowledge : I2C did not acknowledge\r\n*       - ms5637_status_crc_error : CRC check error on the coefficients\r\n*/\r\nenum ms5637_status ms5637_read_eeprom(void) {\r\n  enum ms5637_status status;\r\n  uint8_t i;\r\n\r\n  for (i = 0; i < MS5637_COEFFICIENT_COUNT; i++) {\r\n    status = ms5637_read_ms5637_eeprom_coeff(MS5637_PROM_ADDRESS_READ_ADDRESS_0 + i * 2,\r\n                               ms5637_eeprom_coeff + i);\r\n    if (status != ms5637_status_ok)\r\n\t{\r\n\t  // ATMO_PLATFORM_DebugPrint(\"EEPROM Coeff Read Error\\r\\n\");\r\n      return status;\r\n\t}\r\n  }\r\n  if (!ms5637_crc_check(ms5637_eeprom_coeff, (ms5637_eeprom_coeff[MS5637_CRC_INDEX] & 0xF000) >> 12))\r\n  {\r\n\t  // ATMO_PLATFORM_DebugPrint(\"EEPROM CRC Error\\r\\n\");\r\n    return ms5637_status_crc_error;\r\n  }\r\n\r\n  ms5637_coeff_read = true;\r\n\r\n  return ms5637_status_ok;\r\n}\r\n\r\n\r\n\r\n/**\r\n* \\brief Triggers conversion and read ADC value\r\n*\r\n* \\param[in] uint8_t : Command used for conversion (will determine Temperature\r\n* vs Pressure and osr)\r\n* \\param[out] uint32_t* : ADC value.\r\n*\r\n* \\return ms5637_status : status of MS5637\r\n*       - ms5637_status_ok : I2C transfer completed successfully\r\n*       - ms5637_status_i2c_transfer_error : Problem with i2c transfer\r\n*       - ms5637_status_no_i2c_acknowledge : I2C did not acknowledge\r\n*/\r\nenum ms5637_status ms5637_conversion_and_read_adc(uint8_t cmd, uint32_t *adc) {\r\n  enum ms5637_status status = ms5637_status_ok;\r\n  uint8_t buffer[3];\r\n  uint8_t i;\r\n\r\n  write_command(cmd);\r\n\r\n  ATMO_PLATFORM_DelayMilliseconds(20);\r\n\r\n  uint8_t zeroCmd = 0x0;\r\n  if( ATMO_I2C_MasterRead(_ATMO_MS5637_I2CInstance, MS5637_ADDR, &zeroCmd, 1, buffer, 3, 1000) != ATMO_I2C_Status_Success )\r\n  {\r\n\t  // ATMO_PLATFORM_DebugPrint(\"Error reading ADC Result\\r\\n\");\r\n\t  return ms5637_status_i2c_transfer_error;\r\n  }\r\n\r\n  *adc = ((uint32_t)buffer[0] << 16) | ((uint32_t)buffer[1] << 8) | buffer[2];\r\n\r\n  return status;\r\n}\r\n\r\n/**\r\n* \\brief Reads the temperature and pressure ADC value and compute the\r\n* compensated values.\r\n*\r\n* \\param[out] float* : Celsius Degree temperature value\r\n* \\param[out] float* : mbar pressure value\r\n*\r\n* \\return ms5637_status : status of MS5637\r\n*       - ms5637_status_ok : I2C transfer completed successfully\r\n*       - ms5637_status_i2c_transfer_error : Problem with i2c transfer\r\n*       - ms5637_status_no_i2c_acknowledge : I2C did not acknowledge\r\n*       - ms5637_status_crc_error : CRC check error on the coefficients\r\n*/\r\nenum ms5637_status ms5637_read_temperature_and_pressure(float *temperature,\r\n                                                         float *pressure) {\r\n  MS5637_enableChipWeatherShield();\r\n  enum ms5637_status status = ms5637_status_ok;\r\n  uint32_t adc_temperature, adc_pressure;\r\n  int32_t dT, TEMP;\r\n  int64_t OFF, SENS, P, T2, OFF2, SENS2;\r\n  uint8_t cmd;\r\n\r\n  // If first time adc is requested, get EEPROM coefficients\r\n  if (ms5637_coeff_read == false)\r\n    status = ms5637_read_eeprom();\r\n\r\n  if (status != ms5637_status_ok)\r\n    return status;\r\n\r\n\t// ATMO_PLATFORM_DebugPrint(\"Read EEPROM\\r\\n\");\r\n\r\n  // First read temperature\r\n  cmd = ms5637_resolution_osr * 2;\r\n  cmd |= MS5637_START_TEMPERATURE_ADC_CONVERSION;\r\n  status = ms5637_conversion_and_read_adc(cmd, &adc_temperature);\r\n  if (status != ms5637_status_ok)\r\n    return status;\r\n\r\n\t// ATMO_PLATFORM_DebugPrint(\"Read temperature\\r\\n\");\r\n\r\n  // Now read pressure\r\n  cmd = ms5637_resolution_osr * 2;\r\n  cmd |= MS5637_START_PRESSURE_ADC_CONVERSION;\r\n  status = ms5637_conversion_and_read_adc(cmd, &adc_pressure);\r\n  if (status != ms5637_status_ok)\r\n    return status;\r\n\r\n// ATMO_PLATFORM_DebugPrint(\"Read pressure\\r\\n\");\r\n\r\n  if (adc_temperature == 0 || adc_pressure == 0)\r\n  {\r\n\t  // ATMO_PLATFORM_DebugPrint(\"Zero result\\r\\n\");\r\n    return ms5637_status_i2c_transfer_error;\r\n  }\r\n\r\n  // Difference between actual and reference temperature = D2 - Tref\r\n  dT = (int32_t)adc_temperature -\r\n       ((int32_t)ms5637_eeprom_coeff[MS5637_REFERENCE_TEMPERATURE_INDEX] << 8);\r\n\r\n  // Actual temperature = 2000 + dT * TEMPSENS\r\n  TEMP = 2000 +\r\n         ((int64_t)dT *\r\n              (int64_t)ms5637_eeprom_coeff[MS5637_TEMP_COEFF_OF_TEMPERATURE_INDEX] >>\r\n          23);\r\n\r\n  // Second order temperature compensation\r\n  if (TEMP < 2000) {\r\n    T2 = (3 * ((int64_t)dT * (int64_t)dT)) >> 33;\r\n    OFF2 = 61 * ((int64_t)TEMP - 2000) * ((int64_t)TEMP - 2000) / 16;\r\n    SENS2 = 29 * ((int64_t)TEMP - 2000) * ((int64_t)TEMP - 2000) / 16;\r\n\r\n    if (TEMP < -1500) {\r\n      OFF2 += 17 * ((int64_t)TEMP + 1500) * ((int64_t)TEMP + 1500);\r\n      SENS2 += 9 * ((int64_t)TEMP + 1500) * ((int64_t)TEMP + 1500);\r\n    }\r\n  } else {\r\n    T2 = (5 * ((int64_t)dT * (int64_t)dT)) >> 38;\r\n    OFF2 = 0;\r\n    SENS2 = 0;\r\n  }\r\n\r\n  // OFF = OFF_T1 + TCO * dT\r\n  OFF = ((int64_t)(ms5637_eeprom_coeff[MS5637_PRESSURE_OFFSET_INDEX]) << 17) +\r\n        (((int64_t)(ms5637_eeprom_coeff[MS5637_TEMP_COEFF_OF_PRESSURE_OFFSET_INDEX]) *\r\n          dT) >>\r\n         6);\r\n  OFF -= OFF2;\r\n\r\n  // Sensitivity at actual temperature = SENS_T1 + TCS * dT\r\n  SENS =\r\n      ((int64_t)ms5637_eeprom_coeff[MS5637_PRESSURE_SENSITIVITY_INDEX] << 16) +\r\n      (((int64_t)ms5637_eeprom_coeff[MS5637_TEMP_COEFF_OF_PRESSURE_SENSITIVITY_INDEX] *\r\n        dT) >>\r\n       7);\r\n  SENS -= SENS2;\r\n\r\n  // Temperature compensated pressure = D1 * SENS - OFF\r\n  P = (((adc_pressure * SENS) >> 21) - OFF) >> 15;\r\n\r\n  *temperature = ((float)TEMP - T2) / 100;\r\n  *pressure = (float)P / 100;\r\n\r\n  return status;\r\n}"
+              }
+            }
+          },
+          "md5": "21b226d0089616507609b66271b65d56"
+        },
+        "ms8607": {
+          "libName": "ms8607",
+          "manufacturer": "TEConnectivity",
+          "description": "Pressure Sensor",
+          "type": "Pressure/Temperature/Humidity Sensor",
+          "version": "",
+          "eelVersion": "3",
+          "shoppingCartLinks": {
+            "digikey": {
+              "links": {
+                "info": "https://www.digikey.com/product-detail/en/te-connectivity-measurement-specialties/DPP902S000/223-1786-ND/6685752"
+              },
+              "cartData": {
+                "part": "223-1786-ND",
+                "partid": "6685752",
+                "source": "dkstudio",
+                "qty": "1"
+              }
+            }
+          },
+          "requires": [
+            "embedded",
+            "i2c"
+          ],
+          "elements": [
+            {
+              "name": "MS8607",
+              "type": "EmbeddedMS8607",
+              "icon": "EmbeddedPressure.svg",
+              "defaultAbility": "readPressure",
+              "defaultTrigger": "pressureRead",
+              "hidden": false,
+              "abilities": [
+                {
+                  "name": "setup",
+                  "hidden": true,
+                  "triggers": [],
+                  "code": "ms8607_init(ATMO_PROPERTY(undefined, i2cInstance), ATMO_PROPERTY(undefined, gpioInstance), ATMO_PROPERTY(undefined, weatherShield), ATMO_PROPERTY(undefined, weatherShieldCsA), ATMO_PROPERTY(undefined, weatherShieldCsB), ATMO_PROPERTY(undefined, weatherShieldEn));\r\nreturn ATMO_Status_Success;"
+                },
+                {
+                  "name": "readTemperature",
+                  "triggers": [
+                    "temperatureRead"
+                  ],
+                  "code": "    float temp, press, humidity;\r\n    if(ms8607_read_temperature_pressure_humidity(&temp, &press, &humidity) != ms8607_status_ok)\r\n    {\r\n        return ATMO_Status_Fail;\r\n    }\r\n    ATMO_CreateValueFloat(out, temp);\r\n    return ATMO_Status_Success;"
+                },
+                {
+                  "name": "readHumidity",
+                  "triggers": [
+                    "humidityRead"
+                  ],
+                  "code": "    float temp, press, humidity;\r\n    if(ms8607_read_temperature_pressure_humidity(&temp, &press, &humidity) != ms8607_status_ok)\r\n    {\r\n        return ATMO_Status_Fail;\r\n    }\r\n    ATMO_CreateValueFloat(out, humidity);\r\n    return ATMO_Status_Success;"
+                },
+                {
+                  "name": "readPressure",
+                  "triggers": [
+                    "pressureRead"
+                  ],
+                  "code": "    float temp, press, humidity;\r\n    if(ms8607_read_temperature_pressure_humidity(&temp, &press, &humidity) != ms8607_status_ok)\r\n    {\r\n        return ATMO_Status_Fail;\r\n    }\r\n    ATMO_CreateValueFloat(out, press);\r\n    return ATMO_Status_Success;"
+                }
+              ],
+              "properties": [
+                {
+                  "name": "i2cInstance",
+                  "input": "driverInstance",
+                  "driverType": "i2c"
+                },
+                {
+                  "name": "gpioInstance",
+                  "input": "driverInstance",
+                  "driverType": "gpio"
+                },
+                {
+                  "name": "weatherShield",
+                  "input": "checkbox",
+                  "value": true
+                },
+                {
+                  "name": "weatherShieldCsA",
+                  "input": "number",
+                  "value": 9
+                },
+                {
+                  "name": "weatherShieldCsB",
+                  "input": "number",
+                  "value": 10
+                },
+                {
+                  "name": "weatherShieldEn",
+                  "input": "number",
+                  "value": 11
+                }
+              ],
+              "triggers": [],
+              "variables": [],
+              "language": {
+                "en-US": {
+                  "EmbeddedMS8607": "MS8607 Climate",
+                  "i2cInstance": "I2C Driver Instance",
+                  "gpioInstance": "GPIO Driver Instance",
+                  "readTemperature": "Read Temperature (°C)",
+                  "readPressure": "Read Pressure (mbar)",
+                  "temperatureRead": "Temperature Read",
+                  "pressureRead": "Pressure Read",
+                  "readHumidity": "Read Humidity (%rh)",
+                  "humidityRead": "Humidity Read",
+                  "weatherShield": "TE Arduino Weather Shield",
+                  "weatherShieldCsA": "Weather Shield CSA Pin",
+                  "weatherShieldCsB": "Weather Shield CSB Pin",
+                  "weatherShieldEn": "Weather Shield EN Pin"
+                }
+              }
+            }
+          ],
+          "files": {
+            "common": {
+              "headers": {
+                "ms8607.h": "/**\r\n * \\file ms8607.h\r\n *\r\n * \\brief ms8607 Temperature, pressure and humidity sensor driver header file\r\n *\r\n * MIT License\r\n\r\n    Copyright (c) 2016 TE Connectivity\r\n\r\n    Permission is hereby granted, free of charge, to any person obtaining a copy\r\n    of this software and associated documentation files (the \"Software\"), to deal\r\n    in the Software without restriction, including without limitation the rights\r\n    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell\r\n    copies of the Software, and to permit persons to whom the Software is\r\n    furnished to do so, subject to the following conditions:\r\n\r\n    The above copyright notice and this permission notice shall be included in all\r\n    copies or substantial portions of the Software.\r\n\r\n    THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\r\n    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\r\n    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\r\n    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\r\n    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\r\n    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\r\n    SOFTWARE.\r\n\r\n * Copyright (c) 2016 Measurement Specialties. All rights reserved.\r\n *\r\n */\r\n\r\n#ifndef MS8607_H_INCLUDED\r\n#define MS8607_H_INCLUDED\r\n\r\n#include \"../atmo/core.h\"\r\n#include \"../app_src/atmosphere_platform.h\"\r\n\r\n#ifdef __cplusplus\r\n\textern \"C\"{\r\n#endif\r\n\r\n// Enums\r\n\r\nenum ms8607_humidity_i2c_master_mode {\r\n\tms8607_i2c_hold,\r\n\tms8607_i2c_no_hold\r\n};\r\n\r\nenum ms8607_status {\r\n\tms8607_status_ok = 0,\r\n\tms8607_status_no_i2c_acknowledge = 1,\r\n\tms8607_status_i2c_transfer_error = 2,\r\n\tms8607_status_crc_error = 3,\r\n\tms8607_status_heater_on_error = 4\r\n};\r\n\r\nenum ms8607_humidity_resolution {\r\n\tms8607_humidity_resolution_12b = 0,\r\n\tms8607_humidity_resolution_8b,\r\n\tms8607_humidity_resolution_10b,\r\n\tms8607_humidity_resolution_11b\r\n};\r\n\r\nenum ms8607_battery_status {\r\n\tms8607_battery_ok,\r\n\tms8607_battery_low\r\n};\r\n\r\nenum ms8607_heater_status {\r\n\tms8607_heater_off,\r\n\tms8607_heater_on\r\n};\r\n\r\nenum ms8607_pressure_resolution {\r\n\tms8607_pressure_resolution_osr_256 = 0,\r\n\tms8607_pressure_resolution_osr_512,\r\n\tms8607_pressure_resolution_osr_1024,\r\n\tms8607_pressure_resolution_osr_2048,\r\n\tms8607_pressure_resolution_osr_4096,\r\n\tms8607_pressure_resolution_osr_8192\r\n};\r\n\r\n// Functions\r\n\r\n/**\r\n * \\brief Configures the SERCOM I2C master to be used with the MS8607 device.\r\n */\r\nvoid ms8607_init(ATMO_DriverInstanceHandle_t i2cInstance, ATMO_DriverInstanceHandle_t gpioInstance, bool weatherShieldEnable, ATMO_GPIO_Device_Pin_t weatherShieldCsA, ATMO_GPIO_Device_Pin_t weatherShieldCsB, ATMO_GPIO_Device_Pin_t weatherShieldEn );\r\n\r\n/**\r\n * \\brief Check whether MS8607 device is connected\r\n *\r\n * \\return bool : status of MS8607\r\n *       - true : Device is present\r\n *       - false : Device is not acknowledging I2C address\r\n  */\r\nbool ms8607_is_connected(void);\r\n\r\n/**\r\n * \\brief Reset the MS8607 device\r\n *\r\n * \\return ms8607_status : status of MS8607\r\n *       - ms8607_status_ok : I2C transfer completed successfully\r\n *       - ms8607_status_i2c_transfer_error : Problem with i2c transfer\r\n *       - ms8607_status_no_i2c_acknowledge : I2C did not acknowledge\r\n */\r\nenum ms8607_status ms8607_reset(void);\r\n\r\n/**\r\n * \\brief Set Humidity sensor ADC resolution.\r\n *\r\n * \\param[in] ms8607_humidity_resolution : Resolution requested\r\n *\r\n * \\return ms8607_status : status of MS8607\r\n *       - ms8607_status_ok : I2C transfer completed successfully\r\n *       - ms8607_status_i2c_transfer_error : Problem with i2c transfer\r\n *       - ms8607_status_no_i2c_acknowledge : I2C did not acknowledge\r\n */\r\nenum ms8607_status ms8607_set_humidity_resolution(enum ms8607_humidity_resolution);\r\n\r\n/**\r\n * \\brief Set Pressure sensor ADC resolution.\r\n *\r\n * \\param[in] ms8607_pressure_resolution : Resolution requested\r\n *\r\n */\r\nvoid ms8607_set_pressure_resolution(enum ms8607_pressure_resolution);\r\n\r\n/**\r\n * \\brief Set I2C master mode.\r\n *\r\n * \\param[in] ms8607_i2c_master_mode : I2C mode\r\n *\r\n */\r\nvoid ms8607_set_humidity_i2c_master_mode(enum ms8607_humidity_i2c_master_mode);\r\n\r\n/**\r\n * \\brief Reads the temperature, pressure and relative humidity value.\r\n *\r\n * \\param[out] float* : degC temperature value\r\n * \\param[out] float* : mbar pressure value\r\n * \\param[out] float* : %RH Relative Humidity value\r\n *\r\n * \\return ms8607_status : status of MS8607\r\n *       - ms8607_status_ok : I2C transfer completed successfully\r\n *       - ms8607_status_i2c_transfer_error : Problem with i2c transfer\r\n *       - ms8607_status_no_i2c_acknowledge : I2C did not acknowledge\r\n *       - ms8607_status_crc_error : CRC check error\r\n */\r\nenum ms8607_status ms8607_read_temperature_pressure_humidity( float *, float *, float *);\r\n\r\n/**\r\n * \\brief Provide battery status\r\n *\r\n * \\param[out] ms8607_battery_status* : Battery status\r\n *                      - ms8607_battery_ok,\r\n *                      - ms8607_battery_low\r\n *\r\n * \\return status of MS8607\r\n *       - ms8607_status_ok : I2C transfer completed successfully\r\n *       - ms8607_status_i2c_transfer_error : Problem with i2c transfer\r\n *       - ms8607_status_no_i2c_acknowledge : I2C did not acknowledge\r\n */\r\nenum ms8607_status ms8607_get_battery_status(enum ms8607_battery_status*);\r\n\r\n/**\r\n * \\brief Enable heater\r\n *\r\n * \\return ms8607_status : status of MS8607\r\n *       - ms8607_status_ok : I2C transfer completed successfully\r\n *       - ms8607_status_i2c_transfer_error : Problem with i2c transfer\r\n *       - ms8607_status_no_i2c_acknowledge : I2C did not acknowledge\r\n */\r\nenum ms8607_status ms8607_enable_heater(void);\r\n\r\n/**\r\n * \\brief Disable heater\r\n *\r\n * \\return ms8607_status : status of MS8607\r\n *       - ms8607_status_ok : I2C transfer completed successfully\r\n *       - ms8607_status_i2c_transfer_error : Problem with i2c transfer\r\n *       - ms8607_status_no_i2c_acknowledge : I2C did not acknowledge\r\n */\r\nenum ms8607_status ms8607_disable_heater(void);\r\n\r\n/**\r\n * \\brief Get heater status\r\n *\r\n * \\param[in] ms8607_heater_status* : Return heater status (above or below 2.5V)\r\n *\t                    - ms8607_heater_off,\r\n *                      - ms8607_heater_on\r\n *\r\n * \\return ms8607_status : status of MS8607\r\n *       - ms8607_status_ok : I2C transfer completed successfully\r\n *       - ms8607_status_i2c_transfer_error : Problem with i2c transfer\r\n *       - ms8607_status_no_i2c_acknowledge : I2C did not acknowledge\r\n */\r\nenum ms8607_status ms8607_get_heater_status(enum ms8607_heater_status*);\r\n\r\n/**\r\n * \\brief Returns result of compensated humidity\r\n *        Note : This function shall only be used when the heater is OFF. It will return an error otherwise.\r\n *\r\n * \\param[in] float - Actual temperature measured (degC)\r\n * \\param[in] float - Actual relative humidity measured (%RH)\r\n * \\param[out] float *- Compensated humidity (%RH).\r\n *\r\n * \\return ms8607_status : status of MS8607\r\n *       - ms8607_status_ok : I2C transfer completed successfully\r\n *       - ms8607_status_heater_on_error : Cannot compute compensated humidity because heater is on\r\n */\r\nenum ms8607_status ms8607_get_compensated_humidity( float, float, float*);\r\n\r\n/**\r\n * \\brief Returns the computed dew point\r\n *        Note : This function shall only be used when the heater is OFF. It will return an error otherwise.\r\n *\r\n * \\param[in] float - Actual temperature measured (degC)\r\n * \\param[in] float - Actual relative humidity measured (%RH)\r\n * \\param[out] float *- Dew point temperature (DegC).\r\n *\r\n * \\return ms8607_status : status of MS8607\r\n *       - ms8607_status_ok : I2C transfer completed successfully\r\n *       - ms8607_status_heater_on_error : Cannot compute dew point because heater is on\r\n */\r\nenum ms8607_status ms8607_get_dew_point( float, float, float*);\r\n\r\n#ifdef __cplusplus\r\n\t}\r\n#endif\r\n\r\n#endif /* MS8607_H_INCLUDED */"
+              },
+              "objects": {
+                "ms8607.c": "/**\r\n * \\file ms8607.c\r\n *\r\n * \\brief MS8607 Temperature sensor driver source file\r\n *\r\n * Copyright (c) 2016 Measurement Specialties. All rights reserved.\r\n *\r\n * For details on programming, refer to ms8607 datasheet :\r\n * http://www.meas-spec.com/downloads/MS8607D.pdf\r\n *\r\n */\r\n\r\n#include \"ms8607.h\"\r\n#include \"../gpio/gpio.h\"\r\n#include \"../i2c/i2c.h\"\r\n\r\n/**\r\n * The header \"i2c.h\" has to be implemented for your own platform to\r\n * conform the following protocol :\r\n *\r\n * enum i2c_transfer_direction {\r\n * \tI2C_TRANSFER_WRITE = 0,\r\n * \tI2C_TRANSFER_READ  = 1,\r\n * };\r\n *\r\n * enum status_code {\r\n * \tSTATUS_OK           = 0x00,\r\n * \tSTATUS_ERR_OVERFLOW\t= 0x01,\r\n *\t\tSTATUS_ERR_TIMEOUT  = 0x02,\r\n * };\r\n *\r\n * struct i2c_master_packet {\r\n * \t// Address to slave device\r\n * \tuint16_t address;\r\n * \t// Length of data array\r\n * \tuint16_t data_length;\r\n * \t// Data array containing all data to be transferred\r\n * \tuint8_t *data;\r\n * };\r\n *\r\n * void i2c_master_init(void);\r\n * enum status_code i2c_master_read_packet_wait(struct i2c_master_packet *const packet);\r\n * enum status_code i2c_master_write_packet_wait(struct i2c_master_packet *const packet);\r\n * enum status_code i2c_master_write_packet_wait_no_stop(struct i2c_master_packet *const packet);\r\n */\r\n\r\n#ifdef __cplusplus\r\nextern \"C\" {\r\n#endif\r\n\r\n// HSENSOR device address\r\n#define HSENSOR_ADDR\t\t\t\t\t\t\t\t\t\t0x40 //0b1000000\r\n\r\n// HSENSOR device commands\r\n#define HSENSOR_RESET_COMMAND\t\t\t\t\t\t\t\t0xFE\r\n#define HSENSOR_READ_HUMIDITY_W_HOLD_COMMAND\t\t\t\t0xE5\r\n#define HSENSOR_READ_HUMIDITY_WO_HOLD_COMMAND\t\t\t\t0xF5\r\n#define HSENSOR_READ_SERIAL_FIRST_8BYTES_COMMAND\t\t\t0xFA0F\r\n#define HSENSOR_READ_SERIAL_LAST_6BYTES_COMMAND\t\t\t\t0xFCC9\r\n#define HSENSOR_WRITE_USER_REG_COMMAND\t\t\t\t\t\t0xE6\r\n#define HSENSOR_READ_USER_REG_COMMAND\t\t\t\t\t\t0xE7\r\n\r\n// Processing constants\r\n#define HSENSOR_TEMPERATURE_COEFFICIENT\t\t\t\t\t\t(float)(-0.15)\r\n#define HSENSOR_CONSTANT_A\t\t\t\t\t\t\t\t\t(float)(8.1332)\r\n#define HSENSOR_CONSTANT_B\t\t\t\t\t\t\t\t\t(float)(1762.39)\r\n#define HSENSOR_CONSTANT_C\t\t\t\t\t\t\t\t\t(float)(235.66)\r\n\r\n// Coefficients for temperature computation\r\n#define TEMPERATURE_COEFF_MUL\t\t\t\t\t\t\t\t(175.72)\r\n#define TEMPERATURE_COEFF_ADD\t\t\t\t\t\t\t\t(-46.85)\r\n\r\n// Coefficients for relative humidity computation\r\n#define HUMIDITY_COEFF_MUL\t\t\t\t\t\t\t\t\t(125)\r\n#define HUMIDITY_COEFF_ADD\t\t\t\t\t\t\t\t\t(-6)\r\n\r\n// Conversion timings\r\n#define HSENSOR_CONVERSION_TIME_12b\t\t\t\t\t\t\t16000\r\n#define HSENSOR_CONVERSION_TIME_10b\t\t\t\t\t\t\t5000\r\n#define HSENSOR_CONVERSION_TIME_8b\t\t\t\t\t\t\t3000\r\n#define HSENSOR_CONVERSION_TIME_11b\t\t\t\t\t\t\t9000\r\n\r\n#define HSENSOR_RESET_TIME\t\t\t\t\t\t\t\t\t15       // ms value\r\n\r\n// HSENSOR User Register masks and bit position\r\n#define HSENSOR_USER_REG_RESOLUTION_MASK\t\t\t\t\t0x81\r\n#define HSENSOR_USER_REG_END_OF_BATTERY_MASK\t\t\t\t0x40\r\n#define HSENSOR_USER_REG_ENABLE_ONCHIP_HEATER_MASK\t\t\t0x4\r\n#define HSENSOR_USER_REG_DISABLE_OTP_RELOAD_MASK\t\t\t0x2\r\n#define HSENSOR_USER_REG_RESERVED_MASK\t\t\t\t\t\t(~(\t\tHSENSOR_USER_REG_RESOLUTION_MASK\t\t\t\t\\\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t|\tHSENSOR_USER_REG_END_OF_BATTERY_MASK\t\t\t\\\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t|\tHSENSOR_USER_REG_ENABLE_ONCHIP_HEATER_MASK\t\\\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t|\tHSENSOR_USER_REG_DISABLE_OTP_RELOAD_MASK ))\r\n\r\n// HTU User Register values\r\n// Resolution\r\n#define HSENSOR_USER_REG_RESOLUTION_12b\t\t\t\t\t\t0x00\r\n#define HSENSOR_USER_REG_RESOLUTION_11b\t\t\t\t\t\t0x81\r\n#define HSENSOR_USER_REG_RESOLUTION_10b\t\t\t\t\t\t0x80\r\n#define HSENSOR_USER_REG_RESOLUTION_8b\t\t\t\t\t\t0x01\r\n\r\n// End of battery status\r\n#define HSENSOR_USER_REG_END_OF_BATTERY_VDD_ABOVE_2_25V\t\t0x00\r\n#define HSENSOR_USER_REG_END_OF_BATTERY_VDD_BELOW_2_25V\t\t0x40\r\n// Enable on chip heater\r\n#define HSENSOR_USER_REG_ONCHIP_HEATER_ENABLE\t\t\t\t0x04\r\n#define HSENSOR_USER_REG_OTP_RELOAD_DISABLE\t\t\t\t\t0x02\r\n\r\n// PSENSOR device address\r\n#define PSENSOR_ADDR\t\t\t\t\t\t\t\t\t\t0x76 //0b1110110\r\n\r\n// PSENSOR device commands\r\n#define PSENSOR_RESET_COMMAND\t\t\t\t\t\t\t\t0x1E\r\n#define PSENSOR_START_PRESSURE_ADC_CONVERSION\t\t\t\t0x40\r\n#define PSENSOR_START_TEMPERATURE_ADC_CONVERSION\t\t\t0x50\r\n#define PSENSOR_READ_ADC\t\t\t\t\t\t\t\t\t0x00\r\n\r\n#define PSENSOR_CONVERSION_OSR_MASK\t\t\t\t\t\t\t0x0F\r\n\r\n#define PSENSOR_CONVERSION_TIME_OSR_256\t\t\t\t\t\t1000\r\n#define PSENSOR_CONVERSION_TIME_OSR_512\t\t\t\t\t\t2000\r\n#define PSENSOR_CONVERSION_TIME_OSR_1024\t\t\t\t\t3000\r\n#define PSENSOR_CONVERSION_TIME_OSR_2048\t\t\t\t\t5000\r\n#define PSENSOR_CONVERSION_TIME_OSR_4096\t\t\t\t\t9000\r\n#define PSENSOR_CONVERSION_TIME_OSR_8192\t\t\t\t\t18000\r\n\r\n// PSENSOR commands\r\n#define PROM_ADDRESS_READ_ADDRESS_0\t\t\t\t\t\t\t0xA0\r\n#define PROM_ADDRESS_READ_ADDRESS_1\t\t\t\t\t\t\t0xA2\r\n#define PROM_ADDRESS_READ_ADDRESS_2\t\t\t\t\t\t\t0xA4\r\n#define PROM_ADDRESS_READ_ADDRESS_3\t\t\t\t\t\t\t0xA6\r\n#define PROM_ADDRESS_READ_ADDRESS_4\t\t\t\t\t\t\t0xA8\r\n#define PROM_ADDRESS_READ_ADDRESS_5\t\t\t\t\t\t\t0xAA\r\n#define PROM_ADDRESS_READ_ADDRESS_6\t\t\t\t\t\t\t0xAC\r\n#define PROM_ADDRESS_READ_ADDRESS_7\t\t\t\t\t\t\t0xAE\r\n\r\n// Coefficients indexes for temperature and pressure computation\r\n#define CRC_INDEX\t\t\t\t\t\t\t\t\t\t\t0\r\n#define PRESSURE_SENSITIVITY_INDEX\t\t\t\t\t\t\t1\r\n#define PRESSURE_OFFSET_INDEX\t\t\t\t\t\t\t\t2\r\n#define TEMP_COEFF_OF_PRESSURE_SENSITIVITY_INDEX\t\t\t3\r\n#define TEMP_COEFF_OF_PRESSURE_OFFSET_INDEX\t\t\t\t\t4\r\n#define REFERENCE_TEMPERATURE_INDEX\t\t\t\t\t\t\t5\r\n#define TEMP_COEFF_OF_TEMPERATURE_INDEX\t\t\t\t\t\t6\r\n#define COEFFICIENT_NUMBERS\t\t\t\t\t\t\t\t\t7\r\n\r\n#define MAX_CONVERSION_TIME\t\t\t\t\t\t\t\t\tHSENSOR_CONVERSION_TIME_12b\r\n\r\nuint32_t hsensor_conversion_time = HSENSOR_CONVERSION_TIME_12b;\r\nenum ms8607_humidity_i2c_master_mode hsensor_i2c_master_mode;\r\nbool hsensor_heater_on = false;\r\n\r\nenum ms8607_pressure_resolution psensor_resolution_osr;\r\n// Default value to ensure coefficients are read before converting temperature\r\nbool psensor_coeff_read = false;\r\nstatic uint16_t eeprom_coeff[COEFFICIENT_NUMBERS + 1];\r\nstatic uint32_t psensor_conversion_time[6] = {\tPSENSOR_CONVERSION_TIME_OSR_256,\r\n                                                PSENSOR_CONVERSION_TIME_OSR_512,\r\n                                                PSENSOR_CONVERSION_TIME_OSR_1024,\r\n                                                PSENSOR_CONVERSION_TIME_OSR_2048,\r\n                                                PSENSOR_CONVERSION_TIME_OSR_4096,\r\n                                                PSENSOR_CONVERSION_TIME_OSR_8192\r\n                                             };\r\n\r\n\r\n// Static functions\r\n// humidity sensor functions\r\nstatic enum ms8607_status hsensor_reset( void );\r\nstatic bool hsensor_is_connected( void );\r\nstatic enum ms8607_status hsensor_write_command( uint8_t );\r\nstatic enum ms8607_status hsensor_write_command_no_stop( uint8_t );\r\nstatic enum ms8607_status hsensor_crc_check( uint16_t, uint8_t );\r\nstatic enum ms8607_status hsensor_read_user_register( uint8_t * );\r\nstatic enum ms8607_status hsensor_write_user_register( uint8_t );\r\nstatic enum ms8607_status hsensor_humidity_conversion_and_read_adc( uint16_t * );\r\nstatic enum ms8607_status hsensor_read_relative_humidity( float * );\r\n\r\n// Pressure sensor functions\r\nstatic enum ms8607_status psensor_reset( void );\r\nstatic bool psensor_is_connected( void );\r\nstatic enum ms8607_status psensor_write_command( uint8_t );\r\nstatic enum ms8607_status psensor_read_eeprom_coeff( uint8_t, uint16_t * );\r\nstatic enum ms8607_status psensor_read_eeprom( void );\r\nstatic enum ms8607_status psensor_conversion_and_read_adc( uint8_t, uint32_t * );\r\nstatic bool psensor_crc_check ( uint16_t *n_prom, uint8_t crc );\r\nenum ms8607_status psensor_read_pressure_and_temperature( float *, float * );\r\n\r\nstatic ATMO_DriverInstanceHandle_t _ATMO_MS8607_I2CInstance = 0;\r\nstatic ATMO_DriverInstanceHandle_t _ATMO_MS8607_GpioInstance = 0;\r\n\r\nstatic bool _ATMO_MS8607_WeatherShieldEnable = false;\r\nstatic ATMO_GPIO_Device_Pin_t _ATMO_MS8607_weatherShieldCsA = 0;\r\nstatic ATMO_GPIO_Device_Pin_t _ATMO_MS8607_weatherShieldCsB = 0;\r\nstatic ATMO_GPIO_Device_Pin_t _ATMO_MS8607_weatherShieldEn = 0;\r\n\r\nstatic void MS8607_enableChipWeatherShield()\r\n{\r\n\tif(_ATMO_MS8607_WeatherShieldEnable)\r\n\t{\r\n\t\tATMO_GPIO_SetPinState(_ATMO_MS8607_GpioInstance, _ATMO_MS8607_weatherShieldCsA, ATMO_GPIO_PinState_Low);\r\n\t\tATMO_GPIO_SetPinState(_ATMO_MS8607_GpioInstance, _ATMO_MS8607_weatherShieldCsB, ATMO_GPIO_PinState_Low);\r\n\t\tATMO_GPIO_SetPinState(_ATMO_MS8607_GpioInstance, _ATMO_MS8607_weatherShieldEn, ATMO_GPIO_PinState_High);\r\n\t}\r\n}\r\n\r\n/**\r\n * \\brief Configures the SERCOM I2C master to be used with the ms8607 device.\r\n */\r\nvoid ms8607_init( ATMO_DriverInstanceHandle_t i2cInstance, ATMO_DriverInstanceHandle_t gpioInstance, bool weatherShieldEnable, ATMO_GPIO_Device_Pin_t weatherShieldCsA, ATMO_GPIO_Device_Pin_t weatherShieldCsB, ATMO_GPIO_Device_Pin_t weatherShieldEn )\r\n{\r\n\thsensor_i2c_master_mode = ms8607_i2c_no_hold;\r\n\tpsensor_resolution_osr = ms8607_pressure_resolution_osr_8192;\r\n\t_ATMO_MS8607_I2CInstance = i2cInstance;\r\n\r\n\t_ATMO_MS8607_GpioInstance = gpioInstance;\r\n\t_ATMO_MS8607_WeatherShieldEnable = weatherShieldEnable;\r\n\t_ATMO_MS8607_weatherShieldCsA = weatherShieldCsA;\r\n\t_ATMO_MS8607_weatherShieldCsB = weatherShieldCsB;\r\n\t_ATMO_MS8607_weatherShieldEn = weatherShieldEn;\r\n\r\n\tif( _ATMO_MS8607_WeatherShieldEnable )\r\n\t{\r\n\t\tATMO_GPIO_Config_t gpio;\r\n\t\tgpio.pinMode = ATMO_GPIO_PinMode_Output_PushPull;\r\n\t\tgpio.initialState = ATMO_GPIO_PinState_Low;\r\n\t\tATMO_GPIO_SetPinConfiguration(_ATMO_MS8607_GpioInstance, _ATMO_MS8607_weatherShieldCsA, &gpio);\r\n\t\tATMO_GPIO_SetPinConfiguration(_ATMO_MS8607_GpioInstance, _ATMO_MS8607_weatherShieldCsB, &gpio);\r\n\t\tATMO_GPIO_SetPinConfiguration(_ATMO_MS8607_GpioInstance, _ATMO_MS8607_weatherShieldEn, &gpio);\r\n\t}\r\n\r\n\tMS8607_enableChipWeatherShield();\r\n\r\n\tms8607_reset();\r\n\tms8607_set_humidity_resolution( ms8607_humidity_resolution_12b );\r\n\r\n\t/* Initialize and enable device with config. */\r\n\t// i2c_master_init();\r\n}\r\n\r\n/**\r\n * \\brief Check whether MS8607 device is connected\r\n *\r\n * \\return bool : status of MS8607\r\n *       - true : Device is present\r\n *       - false : Device is not acknowledging I2C address\r\n  */\r\nbool ms8607_is_connected( void )\r\n{\r\n\treturn ( hsensor_is_connected() && psensor_is_connected() );\r\n}\r\n\r\n/**\r\n * \\brief Reset the MS8607 device\r\n *\r\n * \\return ms8607_status : status of MS8607\r\n *       - ms8607_status_ok : I2C transfer completed successfully\r\n *       - ms8607_status_i2c_transfer_error : Problem with i2c transfer\r\n *       - ms8607_status_no_i2c_acknowledge : I2C did not acknowledge\r\n */\r\nenum ms8607_status  ms8607_reset( void )\r\n{\r\n\tenum ms8607_status status;\r\n\r\n\tstatus = hsensor_reset();\r\n\r\n\tif ( status != ms8607_status_ok )\r\n\t{\r\n\t\treturn status;\r\n\t}\r\n\r\n\tstatus = psensor_reset();\r\n\r\n\tif ( status != ms8607_status_ok )\r\n\t{\r\n\t\treturn status;\r\n\t}\r\n\r\n\treturn ms8607_status_ok;\r\n}\r\n\r\n/**\r\n * \\brief Set humidity ADC resolution.\r\n *\r\n * \\param[in] ms8607_humidity_resolution : Resolution requested\r\n *\r\n * \\return ms8607_status : status of MS8607\r\n *       - ms8607_status_ok : I2C transfer completed successfully\r\n *       - ms8607_status_i2c_transfer_error : Problem with i2c transfer\r\n *       - ms8607_status_no_i2c_acknowledge : I2C did not acknowledge\r\n *       - ms8607_status_crc_error : CRC check error\r\n */\r\nenum ms8607_status ms8607_set_humidity_resolution( enum ms8607_humidity_resolution res )\r\n{\r\n\tenum ms8607_status status;\r\n\tuint8_t reg_value, tmp = 0;\r\n\tuint32_t conversion_time = HSENSOR_CONVERSION_TIME_12b;\r\n\r\n\tif ( res == ms8607_humidity_resolution_12b )\r\n\t{\r\n\t\ttmp = HSENSOR_USER_REG_RESOLUTION_12b;\r\n\t\tconversion_time = HSENSOR_CONVERSION_TIME_12b;\r\n\t}\r\n\telse if ( res == ms8607_humidity_resolution_10b )\r\n\t{\r\n\t\ttmp = HSENSOR_USER_REG_RESOLUTION_10b;\r\n\t\tconversion_time = HSENSOR_CONVERSION_TIME_10b;\r\n\t}\r\n\telse if ( res == ms8607_humidity_resolution_8b )\r\n\t{\r\n\t\ttmp = HSENSOR_USER_REG_RESOLUTION_8b;\r\n\t\tconversion_time = HSENSOR_CONVERSION_TIME_8b;\r\n\t}\r\n\telse if ( res == ms8607_humidity_resolution_11b )\r\n\t{\r\n\t\ttmp = HSENSOR_USER_REG_RESOLUTION_11b;\r\n\t\tconversion_time = HSENSOR_CONVERSION_TIME_11b;\r\n\t}\r\n\r\n\tstatus = hsensor_read_user_register( &reg_value );\r\n\r\n\tif ( status != ms8607_status_ok )\r\n\t{\r\n\t\treturn status;\r\n\t}\r\n\r\n\t// Clear the resolution bits\r\n\treg_value &= ~HSENSOR_USER_REG_RESOLUTION_MASK;\r\n\treg_value |= tmp & HSENSOR_USER_REG_RESOLUTION_MASK;\r\n\r\n\thsensor_conversion_time = conversion_time;\r\n\r\n\tstatus = hsensor_write_user_register( reg_value );\r\n\r\n\treturn status;\r\n}\r\n\r\n/**\r\n * \\brief Set Humidity sensor ADC resolution.\r\n *\r\n * \\param[in] ms8607_i2c_master_mode : I2C mode\r\n *\r\n * \\return ms8607_status : status of MS8607\r\n *       - ms8607_status_ok\r\n */\r\nvoid ms8607_set_humidity_i2c_master_mode( enum ms8607_humidity_i2c_master_mode mode )\r\n{\r\n\thsensor_i2c_master_mode = mode;\r\n\treturn;\r\n}\r\n\r\n/**\r\n * \\brief Reads the temperature, pressure and relative humidity value.\r\n *\r\n * \\param[out] float* : degC temperature value\r\n * \\param[out] float* : mbar pressure value\r\n * \\param[out] float* : %RH Relative Humidity value\r\n *\r\n * \\return ms8607_status : status of MS8607\r\n *       - ms8607_status_ok : I2C transfer completed successfully\r\n *       - ms8607_status_i2c_transfer_error : Problem with i2c transfer\r\n *       - ms8607_status_no_i2c_acknowledge : I2C did not acknowledge\r\n *       - ms8607_status_crc_error : CRC check error\r\n */\r\nenum ms8607_status ms8607_read_temperature_pressure_humidity( float *t, float *p, float *h )\r\n{\r\n\tMS8607_enableChipWeatherShield();\r\n\r\n\tenum ms8607_status status;\r\n\r\n\tstatus = psensor_read_pressure_and_temperature( t, p );\r\n\r\n\tif ( status != ms8607_status_ok )\r\n\t{\r\n\t\treturn status;\r\n\t}\r\n\r\n\tstatus = hsensor_read_relative_humidity( h );\r\n\r\n\tif ( status != ms8607_status_ok )\r\n\t{\r\n\t\treturn status;\r\n\t}\r\n\r\n\treturn ms8607_status_ok;\r\n}\r\n\r\n/**\r\n * \\brief Provide battery status\r\n *\r\n * \\param[out] ms8607_battery_status* : Battery status\r\n *                      - ms8607_battery_ok,\r\n *                      - ms8607_battery_low\r\n *\r\n * \\return ms8607_status : status of MS8607\r\n *       - ms8607_status_ok : I2C transfer completed successfully\r\n *       - ms8607_status_i2c_transfer_error : Problem with i2c transfer\r\n *       - ms8607_status_no_i2c_acknowledge : I2C did not acknowledge\r\n */\r\nenum ms8607_status ms8607_get_battery_status( enum ms8607_battery_status *bat )\r\n{\r\n\tMS8607_enableChipWeatherShield();\r\n\tenum ms8607_status\tstatus;\r\n\tuint8_t reg_value;\r\n\r\n\tstatus = hsensor_read_user_register( &reg_value );\r\n\r\n\tif ( status != ms8607_status_ok )\r\n\t{\r\n\t\treturn status;\r\n\t}\r\n\r\n\tif ( reg_value & HSENSOR_USER_REG_END_OF_BATTERY_VDD_BELOW_2_25V )\r\n\t{\r\n\t\t*bat = ms8607_battery_low;\r\n\t}\r\n\telse\r\n\t{\r\n\t\t*bat = ms8607_battery_ok;\r\n\t}\r\n\r\n\treturn status;\r\n}\r\n\r\n/**\r\n * \\brief Enable heater\r\n *\r\n * \\return ms8607_status : status of MS8607\r\n *       - ms8607_status_ok : I2C transfer completed successfully\r\n *       - ms8607_status_i2c_transfer_error : Problem with i2c transfer\r\n *       - ms8607_status_no_i2c_acknowledge : I2C did not acknowledge\r\n */\r\nenum ms8607_status ms8607_enable_heater( void )\r\n{\r\n\tMS8607_enableChipWeatherShield();\r\n\r\n\tenum ms8607_status status;\r\n\tuint8_t reg_value;\r\n\r\n\tstatus = hsensor_read_user_register( &reg_value );\r\n\r\n\tif ( status != ms8607_status_ok )\r\n\t{\r\n\t\treturn status;\r\n\t}\r\n\r\n\t// Clear the resolution bits\r\n\treg_value |= HSENSOR_USER_REG_ONCHIP_HEATER_ENABLE;\r\n\thsensor_heater_on = true;\r\n\r\n\tstatus = hsensor_write_user_register( reg_value );\r\n\r\n\treturn status;\r\n}\r\n\r\n/**\r\n * \\brief Disable heater\r\n *\r\n * \\return ms8607_status : status of MS8607\r\n *       - ms8607_status_ok : I2C transfer completed successfully\r\n *       - ms8607_status_i2c_transfer_error : Problem with i2c transfer\r\n *       - ms8607_status_no_i2c_acknowledge : I2C did not acknowledge\r\n */\r\nenum ms8607_status ms8607_disable_heater( void )\r\n{\r\n\tMS8607_enableChipWeatherShield();\r\n\r\n\tenum ms8607_status status;\r\n\tuint8_t reg_value;\r\n\r\n\tstatus = hsensor_read_user_register( &reg_value );\r\n\r\n\tif ( status != ms8607_status_ok )\r\n\t{\r\n\t\treturn status;\r\n\t}\r\n\r\n\t// Clear the resolution bits\r\n\treg_value &= ~HSENSOR_USER_REG_ONCHIP_HEATER_ENABLE;\r\n\thsensor_heater_on = false;\r\n\r\n\tstatus = hsensor_write_user_register( reg_value );\r\n\r\n\treturn status;\r\n}\r\n\r\n/**\r\n * \\brief Get heater status\r\n *\r\n * \\param[in] ms8607_heater_status* : Return heater status (above or below 2.5V)\r\n *\t                    - ms8607_heater_off,\r\n *                      - ms8607_heater_on\r\n *\r\n * \\return ms8607_status : status of MS8607\r\n *       - ms8607_status_ok : I2C transfer completed successfully\r\n *       - ms8607_status_i2c_transfer_error : Problem with i2c transfer\r\n *       - ms8607_status_no_i2c_acknowledge : I2C did not acknowledge\r\n */\r\nenum ms8607_status ms8607_get_heater_status( enum ms8607_heater_status *heater )\r\n{\r\n\tMS8607_enableChipWeatherShield();\r\n\t\r\n\tenum ms8607_status status;\r\n\tuint8_t reg_value;\r\n\r\n\tstatus = hsensor_read_user_register( &reg_value );\r\n\r\n\tif ( status != ms8607_status_ok )\r\n\t{\r\n\t\treturn status;\r\n\t}\r\n\r\n\t// Get the heater enable bit in reg_value\r\n\tif ( reg_value & HSENSOR_USER_REG_ONCHIP_HEATER_ENABLE )\r\n\t{\r\n\t\t*heater = ms8607_heater_on;\r\n\t}\r\n\telse\r\n\t{\r\n\t\t*heater = ms8607_heater_off;\r\n\t}\r\n\r\n\treturn status;\r\n}\r\n\r\n/******************** Functions from humidity sensor ********************/\r\n\r\n/**\r\n * \\brief Check whether humidity sensor is connected\r\n *\r\n * \\return bool : status of humidity sensor\r\n *       - true : Device is present\r\n *       - false : Device is not acknowledging I2C address\r\n  */\r\nbool hsensor_is_connected( void )\r\n{\r\n\t// enum status_code i2c_status;\r\n\r\n\t// struct i2c_master_packet transfer = {\r\n\t// \t.address     = HSENSOR_ADDR,\r\n\t// \t.data_length = 0,\r\n\t// \t.data        = NULL,\r\n\t// };\r\n\t// /* Do the transfer */\r\n\t// i2c_status = i2c_master_write_packet_wait(&transfer);\r\n\t// if( i2c_status != STATUS_OK)\r\n\t// \treturn false;\r\n\r\n\treturn true;\r\n}\r\n\r\n/**\r\n * \\brief Reset the humidity sensor part\r\n *\r\n * \\return ms8607_status : status of MS8607\r\n *       - ms8607_status_ok : I2C transfer completed successfully\r\n *       - ms8607_status_i2c_transfer_error : Problem with i2c transfer\r\n *       - ms8607_status_no_i2c_acknowledge : I2C did not acknowledge\r\n */\r\nenum ms8607_status  hsensor_reset( void )\r\n{\r\n\tenum ms8607_status status;\r\n\r\n\tuint8_t cmd = HSENSOR_RESET_COMMAND;\r\n\tATMO_I2C_Status_t i2cStatus = ATMO_I2C_MasterWrite( _ATMO_MS8607_I2CInstance, HSENSOR_ADDR, NULL, 0, &cmd, 1, 1000 );\r\n\r\n\tif ( i2cStatus != ATMO_I2C_Status_Success )\r\n\t{\r\n\t\tATMO_PLATFORM_DebugPrint( \"Error resetting hsensor\" );\r\n\t\treturn ms8607_status_i2c_transfer_error;\r\n\t}\r\n\r\n\thsensor_conversion_time = HSENSOR_CONVERSION_TIME_12b;\r\n\tATMO_PLATFORM_DelayMilliseconds( HSENSOR_RESET_TIME );\r\n\r\n\treturn ms8607_status_ok;\r\n}\r\n\r\n/**\r\n * \\brief Check CRC\r\n *\r\n * \\param[in] uint16_t : variable on which to check CRC\r\n * \\param[in] uint8_t : CRC value\r\n *\r\n * \\return ms8607_status : status of MS8607\r\n *       - ms8607_status_ok : CRC check is OK\r\n *       - ms8607_status_crc_error : CRC check error\r\n */\r\nenum ms8607_status hsensor_crc_check( uint16_t value, uint8_t crc )\r\n{\r\n\tuint32_t polynom = 0x988000; // x^8 + x^5 + x^4 + 1\r\n\tuint32_t msb     = 0x800000;\r\n\tuint32_t mask    = 0xFF8000;\r\n\tuint32_t result  = ( uint32_t )value << 8; // Pad with zeros as specified in spec\r\n\r\n\twhile ( msb != 0x80 )\r\n\t{\r\n\r\n\t\t// Check if msb of current value is 1 and apply XOR mask\r\n\t\tif ( result & msb )\r\n\t\t{\r\n\t\t\tresult = ( ( result ^ polynom ) & mask ) | ( result & ~mask );\r\n\t\t}\r\n\r\n\t\t// Shift by one\r\n\t\tmsb >>= 1;\r\n\t\tmask >>= 1;\r\n\t\tpolynom >>= 1;\r\n\t}\r\n\r\n\tif ( result == crc )\r\n\t{\r\n\t\treturn \tms8607_status_ok;\r\n\t}\r\n\telse\r\n\t{\r\n\t\treturn ms8607_status_crc_error;\r\n\t}\r\n}\r\n\r\n/**\r\n * \\brief Reads the MS8607 humidity user register.\r\n *\r\n * \\param[out] uint8_t* : Storage of user register value\r\n *\r\n * \\return ms8607_status : status of MS8607\r\n *       - ms8607_status_ok : I2C transfer completed successfully\r\n *       - ms8607_status_i2c_transfer_error : Problem with i2c transfer\r\n *       - ms8607_status_no_i2c_acknowledge : I2C did not acknowledge\r\n */\r\nenum ms8607_status hsensor_read_user_register( uint8_t *value )\r\n{\r\n\tenum ms8607_status status;\r\n\tuint8_t buffer[1];\r\n\tbuffer[0] = 0;\r\n\r\n\t// Send the Read Register Command\r\n\tuint8_t cmd = HSENSOR_READ_USER_REG_COMMAND;\r\n\tATMO_I2C_Status_t i2cStatus = ATMO_I2C_MasterRead( _ATMO_MS8607_I2CInstance, HSENSOR_ADDR, &cmd, 1, buffer, 1, 1000 );\r\n\r\n\tif ( i2cStatus != ATMO_I2C_Status_Success )\r\n\t{\r\n\t\treturn ms8607_status_i2c_transfer_error;\r\n\t}\r\n\r\n\t*value = buffer[0];\r\n\r\n\treturn ms8607_status_ok;\r\n}\r\n\r\n/**\r\n * \\brief Writes the MS8607 humidity user register with value\r\n *        Will read and keep the unreserved bits of the register\r\n *\r\n * \\param[in] uint8_t : Register value to be set.\r\n *\r\n * \\return ms8607_status : status of MS8607\r\n *       - ms8607_status_ok : I2C transfer completed successfully\r\n *       - ms8607_status_i2c_transfer_error : Problem with i2c transfer\r\n *       - ms8607_status_no_i2c_acknowledge : I2C did not acknowledge\r\n */\r\nenum ms8607_status hsensor_write_user_register( uint8_t value )\r\n{\r\n\tenum ms8607_status status;\r\n\tuint8_t reg;\r\n\tuint8_t data[2];\r\n\r\n\tstatus = hsensor_read_user_register( &reg );\r\n\r\n\tif ( status != ms8607_status_ok )\r\n\t{\r\n\t\treturn status;\r\n\t}\r\n\r\n\t// Clear bits of reg that are not reserved\r\n\treg &= HSENSOR_USER_REG_RESERVED_MASK;\r\n\t// Set bits from value that are not reserved\r\n\treg |= ( value & ~HSENSOR_USER_REG_RESERVED_MASK );\r\n\r\n\tdata[0] = HSENSOR_WRITE_USER_REG_COMMAND;\r\n\tdata[1] = reg;\r\n\r\n\tATMO_I2C_Status_t i2cStatus = ATMO_I2C_MasterRead( _ATMO_MS8607_I2CInstance, HSENSOR_ADDR, NULL, 0, data, 2, 1000 );\r\n\r\n\tif ( i2cStatus != ATMO_I2C_Status_Success )\r\n\t{\r\n\t\treturn ms8607_status_i2c_transfer_error;\r\n\t}\r\n\r\n\treturn ms8607_status_ok;\r\n}\r\n\r\n/**\r\n * \\brief Reads the relative humidity ADC value\r\n *\r\n * \\param[out] uint16_t* : Relative humidity ADC value.\r\n *\r\n * \\return ms8607_status : status of MS8607\r\n *       - ms8607_status_ok : I2C transfer completed successfully\r\n *       - ms8607_status_i2c_transfer_error : Problem with i2c transfer\r\n *       - ms8607_status_no_i2c_acknowledge : I2C did not acknowledge\r\n *       - ms8607_status_crc_error : CRC check error\r\n */\r\nenum ms8607_status hsensor_humidity_conversion_and_read_adc( uint16_t *adc )\r\n{\r\n\tenum ms8607_status status = ms8607_status_ok;\r\n\tuint16_t _adc;\r\n\tuint8_t buffer[3];\r\n\tuint8_t crc;\r\n\r\n\tbuffer[0] = 0;\r\n\tbuffer[1] = 0;\r\n\tbuffer[2] = 0;\r\n\r\n\tuint8_t cmd = HSENSOR_READ_HUMIDITY_WO_HOLD_COMMAND;\r\n\tATMO_I2C_Status_t i2cStatus = ATMO_I2C_MasterWrite( _ATMO_MS8607_I2CInstance, HSENSOR_ADDR, NULL, 0, &cmd, 1, 1000 );\r\n\r\n\tif ( i2cStatus != ATMO_I2C_Status_Success )\r\n\t{\r\n\t\treturn ms8607_status_i2c_transfer_error;\r\n\t}\r\n\r\n\tATMO_PLATFORM_DelayMilliseconds(HSENSOR_CONVERSION_TIME_12b / 1000);\r\n\r\n\ti2cStatus = ATMO_I2C_MasterRead( _ATMO_MS8607_I2CInstance, HSENSOR_ADDR, NULL, 0, buffer, 3, 1000 );\r\n\r\n\tif ( i2cStatus != ATMO_I2C_Status_Success )\r\n\t{\r\n\t\treturn ms8607_status_i2c_transfer_error;\r\n\t}\r\n\r\n\t_adc = ( buffer[0] << 8 ) | buffer[1];\r\n\tcrc = buffer[2];\r\n\r\n\t// compute CRC\r\n\tstatus = hsensor_crc_check( _adc, crc );\r\n\r\n\tif ( status != ms8607_status_ok )\r\n\t{\r\n\t\treturn status;\r\n\t}\r\n\r\n\t*adc = _adc;\r\n\r\n\treturn status;\r\n}\r\n\r\n/**\r\n * \\brief Reads the relative humidity value.\r\n *\r\n * \\param[out] float* : %RH Relative Humidity value\r\n *\r\n * \\return ms8607_status : status of MS8607\r\n *       - ms8607_status_ok : I2C transfer completed successfully\r\n *       - ms8607_status_i2c_transfer_error : Problem with i2c transfer\r\n *       - ms8607_status_no_i2c_acknowledge : I2C did not acknowledge\r\n *       - ms8607_status_crc_error : CRC check error\r\n */\r\nenum ms8607_status hsensor_read_relative_humidity( float *humidity )\r\n{\r\n\tenum ms8607_status\tstatus;\r\n\tuint16_t adc;\r\n\r\n\tstatus = hsensor_humidity_conversion_and_read_adc( &adc );\r\n\r\n\tif ( status != ms8607_status_ok )\r\n\t{\r\n\t\treturn status;\r\n\t}\r\n\r\n\t// Perform conversion function\r\n\t*humidity = ( float )adc * HUMIDITY_COEFF_MUL / ( 1UL << 16 ) + HUMIDITY_COEFF_ADD;\r\n\r\n\treturn status;\r\n}\r\n\r\n/**\r\n * \\brief Returns result of compensated humidity\r\n *        Note : This function shall only be used when the heater is OFF. It will return an error otherwise.\r\n *\r\n * \\param[in] float - Actual temperature measured (degC)\r\n * \\param[in] float - Actual relative humidity measured (%RH)\r\n * \\param[out] float *- Compensated humidity (%RH).\r\n *\r\n * \\return ms8607_status : status of MS8607\r\n *       - ms8607_status_ok : I2C transfer completed successfully\r\n *       - ms8607_status_heater_on_error : Cannot compute compensated humidity because heater is on\r\n */\r\nenum ms8607_status ms8607_get_compensated_humidity( float temperature, float relative_humidity, float *compensated_humidity )\r\n{\r\n\tif ( hsensor_heater_on )\r\n\t{\r\n\t\treturn ms8607_status_heater_on_error;\r\n\t}\r\n\r\n\t*compensated_humidity = ( relative_humidity + ( 25 - temperature ) * HSENSOR_TEMPERATURE_COEFFICIENT );\r\n\r\n\treturn ms8607_status_ok;\r\n}\r\n\r\n/**\r\n * \\brief Returns the computed dew point\r\n *        Note : This function shall only be used when the heater is OFF. It will return an error otherwise.\r\n *\r\n * \\param[in] float - Actual temperature measured (degC)\r\n * \\param[in] float - Actual relative humidity measured (%RH)\r\n * \\param[out] float *- Dew point temperature (DegC).\r\n *\r\n * \\return ms8607_status : status of MS8607\r\n *       - ms8607_status_ok : I2C transfer completed successfully\r\n *       - ms8607_status_heater_on_error : Cannot compute compensated humidity because heater is on\r\n */\r\nenum ms8607_status  ms8607_get_dew_point( float temperature, float relative_humidity, float *dew_point )\r\n{\r\n\tdouble partial_pressure;\r\n\r\n\tif ( hsensor_heater_on )\r\n\t{\r\n\t\treturn ms8607_status_heater_on_error;\r\n\t}\r\n\r\n\t// Missing power of 10\r\n\tpartial_pressure = pow( 10, HSENSOR_CONSTANT_A - HSENSOR_CONSTANT_B / ( temperature + HSENSOR_CONSTANT_C ) );\r\n\r\n\t*dew_point =  - HSENSOR_CONSTANT_B / ( log10( relative_humidity * partial_pressure / 100 ) - HSENSOR_CONSTANT_A ) - HSENSOR_CONSTANT_C;\r\n\r\n\treturn ms8607_status_ok;\r\n}\r\n\r\n/******************** Functions from Pressure sensor ********************/\r\n\r\n/**\r\n * \\brief Check whether Pressure sensor device is connected\r\n *\r\n * \\return bool : status of Pressure sensor\r\n *       - true : Device is present\r\n *       - false : Device is not acknowledging I2C address\r\n  */\r\nbool psensor_is_connected( void )\r\n{\r\n\treturn true;\r\n}\r\n\r\n/**\r\n * \\brief Reset the Pressure sensor part\r\n *\r\n * \\return ms8607_status : status of MS8607\r\n *       - ms8607_status_ok : I2C transfer completed successfully\r\n *       - ms8607_status_i2c_transfer_error : Problem with i2c transfer\r\n *       - ms8607_status_no_i2c_acknowledge : I2C did not acknowledge\r\n */\r\nenum ms8607_status  psensor_reset( void )\r\n{\r\n\tenum ms8607_status status;\r\n\r\n\tuint8_t cmd = PSENSOR_RESET_COMMAND;\r\n\tATMO_I2C_Status_t i2cStatus = ATMO_I2C_MasterWrite( _ATMO_MS8607_I2CInstance, PSENSOR_ADDR, NULL, 0, &cmd, 1, 1000 );\r\n\r\n\tif ( i2cStatus != ATMO_I2C_Status_Success )\r\n\t{\r\n\t\treturn ms8607_status_i2c_transfer_error;\r\n\t}\r\n\r\n\treturn ms8607_status_ok;\r\n}\r\n\r\n/**\r\n * \\brief Set pressure ADC resolution.\r\n *\r\n * \\param[in] ms8607_pressure_resolution : Resolution requested\r\n *\r\n */\r\nvoid ms8607_set_pressure_resolution( enum ms8607_pressure_resolution res )\r\n{\r\n\tpsensor_resolution_osr = res;\r\n\treturn;\r\n}\r\n\r\n/**\r\n * \\brief Reads the psensor EEPROM coefficient stored at address provided.\r\n *\r\n * \\param[in] uint8_t : Address of coefficient in EEPROM\r\n * \\param[out] uint16_t* : Value read in EEPROM\r\n *\r\n * \\return ms8607_status : status of MS8607\r\n *       - ms8607_status_ok : I2C transfer completed successfully\r\n *       - ms8607_status_i2c_transfer_error : Problem with i2c transfer\r\n *       - ms8607_status_no_i2c_acknowledge : I2C did not acknowledge\r\n *       - ms8607_status_crc_error : CRC check error on the coefficients\r\n */\r\nenum ms8607_status psensor_read_eeprom_coeff( uint8_t command, uint16_t *coeff )\r\n{\r\n\tenum ms8607_status status;\r\n\tuint8_t buffer[2];\r\n\r\n\tbuffer[0] = 0;\r\n\tbuffer[1] = 0;\r\n\r\n\tATMO_I2C_Status_t i2cStatus = ATMO_I2C_MasterRead( _ATMO_MS8607_I2CInstance, PSENSOR_ADDR, &command, 1, buffer, 2, 1000 );\r\n\r\n\tif ( i2cStatus != ATMO_I2C_Status_Success )\r\n\t{\r\n\t\treturn ms8607_status_i2c_transfer_error;\r\n\t}\r\n\r\n\t*coeff = ( buffer[0] << 8 ) | buffer[1];\r\n\r\n\tif ( *coeff == 0 )\r\n\t{\r\n\t\treturn ms8607_status_i2c_transfer_error;\r\n\t}\r\n\r\n\treturn ms8607_status_ok;\r\n}\r\n\r\n/**\r\n * \\brief Reads the ms8607 EEPROM coefficients to store them for computation.\r\n *\r\n * \\return ms8607_status : status of MS8607\r\n *       - ms8607_status_ok : I2C transfer completed successfully\r\n *       - ms8607_status_i2c_transfer_error : Problem with i2c transfer\r\n *       - ms8607_status_no_i2c_acknowledge : I2C did not acknowledge\r\n *       - ms8607_status_crc_error : CRC check error on the coefficients\r\n */\r\nenum ms8607_status psensor_read_eeprom( void )\r\n{\r\n\tenum ms8607_status status;\r\n\tuint8_t i;\r\n\r\n\tfor ( i = 0 ; i < COEFFICIENT_NUMBERS ; i++ )\r\n\t{\r\n\t\tstatus = psensor_read_eeprom_coeff( PROM_ADDRESS_READ_ADDRESS_0 + i * 2, eeprom_coeff + i );\r\n\r\n\t\tif ( status != ms8607_status_ok )\r\n\t\t{\r\n\t\t\treturn status;\r\n\t\t}\r\n\t}\r\n\r\n\tif ( !psensor_crc_check( eeprom_coeff, ( eeprom_coeff[CRC_INDEX] & 0xF000 ) >> 12 ) )\r\n\t{\r\n\t\treturn ms8607_status_crc_error;\r\n\t}\r\n\r\n\tpsensor_coeff_read = true;\r\n\r\n\treturn ms8607_status_ok;\r\n}\r\n\r\n/**\r\n * \\brief Triggers conversion and read ADC value\r\n *\r\n * \\param[in] uint8_t : Command used for conversion (will determine Temperature vs Pressure and osr)\r\n * \\param[out] uint32_t* : ADC value.\r\n *\r\n * \\return ms8607_status : status of MS8607\r\n *       - ms8607_status_ok : I2C transfer completed successfully\r\n *       - ms8607_status_i2c_transfer_error : Problem with i2c transfer\r\n *       - ms8607_status_no_i2c_acknowledge : I2C did not acknowledge\r\n */\r\nstatic enum ms8607_status psensor_conversion_and_read_adc( uint8_t cmd, uint32_t *adc )\r\n{\r\n\tenum ms8607_status status = ms8607_status_ok;\r\n\tuint8_t buffer[3];\r\n\r\n\tbuffer[0] = 0;\r\n\tbuffer[1] = 0;\r\n\tbuffer[2] = 0;\r\n\r\n\tATMO_I2C_Status_t i2cStatus = ATMO_I2C_MasterWrite( _ATMO_MS8607_I2CInstance, PSENSOR_ADDR, NULL, 0, &cmd, 1, 1000 );\r\n\r\n\tif ( i2cStatus != ATMO_I2C_Status_Success )\r\n\t{\r\n\t\tATMO_PLATFORM_DebugPrint( \"Error sending convert command: %02X\\r\\n\", i2cStatus );\r\n\t\treturn ms8607_status_i2c_transfer_error;\r\n\t}\r\n\r\n\tATMO_PLATFORM_DelayMilliseconds(PSENSOR_CONVERSION_TIME_OSR_8192 / 1000);\r\n\r\n\tuint8_t readCmd = PSENSOR_READ_ADC;\r\n\r\n\ti2cStatus = ATMO_I2C_MasterRead( _ATMO_MS8607_I2CInstance, PSENSOR_ADDR, &readCmd, 1, buffer, 3, 1000 );\r\n\r\n\tif ( i2cStatus != ATMO_I2C_Status_Success )\r\n\t{\r\n\t\tATMO_PLATFORM_DebugPrint( \"ADC Read Error: %02X\\r\\n\", i2cStatus );\r\n\t\treturn ms8607_status_i2c_transfer_error;\r\n\t}\r\n\r\n\t*adc = ( ( uint32_t )buffer[0] << 16 ) | ( ( uint32_t )buffer[1] << 8 ) | buffer[2];\r\n\r\n\treturn status;\r\n}\r\n\r\n/**\r\n * \\brief Compute temperature and pressure\r\n *\r\n * \\param[out] float* : Celsius Degree temperature value\r\n * \\param[out] float* : mbar pressure value\r\n *\r\n * \\return ms8607_status : status of MS8607\r\n *       - ms8607_status_ok : I2C transfer completed successfully\r\n *       - ms8607_status_i2c_transfer_error : Problem with i2c transfer\r\n *       - ms8607_status_no_i2c_acknowledge : I2C did not acknowledge\r\n *       - ms8607_status_crc_error : CRC check error on the coefficients\r\n */\r\nenum ms8607_status psensor_read_pressure_and_temperature( float *temperature, float *pressure )\r\n{\r\n\tenum ms8607_status status = ms8607_status_ok;\r\n\tuint32_t adc_temperature, adc_pressure;\r\n\tint32_t dT, TEMP;\r\n\tint64_t OFF, SENS, P, T2, OFF2, SENS2;\r\n\tuint8_t cmd;\r\n\r\n\t// If first time adc is requested, get EEPROM coefficients\r\n\tif ( psensor_coeff_read == false )\r\n\t{\r\n\t\tstatus = psensor_read_eeprom();\r\n\t}\r\n\r\n\tif ( status != ms8607_status_ok )\r\n\t{\r\n\t\tATMO_PLATFORM_DebugPrint( \"Error reading EEPROM\\r\\n\" );\r\n\t\treturn status;\r\n\t}\r\n\r\n\t// First read temperature\r\n\tcmd = psensor_resolution_osr * 2;\r\n\tcmd |= PSENSOR_START_TEMPERATURE_ADC_CONVERSION;\r\n\tstatus = psensor_conversion_and_read_adc( cmd, &adc_temperature );\r\n\r\n\tif ( status != ms8607_status_ok )\r\n\t{\r\n\t\tATMO_PLATFORM_DebugPrint( \"Error reading ADC\\r\\n\" );\r\n\t\treturn status;\r\n\t}\r\n\r\n\t// Now read pressure\r\n\tcmd = psensor_resolution_osr * 2;\r\n\tcmd |= PSENSOR_START_PRESSURE_ADC_CONVERSION;\r\n\tstatus = psensor_conversion_and_read_adc( cmd, &adc_pressure );\r\n\r\n\tif ( status != ms8607_status_ok )\r\n\t{\r\n\t\treturn status;\r\n\t}\r\n\r\n\tif ( adc_temperature == 0 || adc_pressure == 0 )\r\n\t{\r\n\t\treturn ms8607_status_i2c_transfer_error;\r\n\t}\r\n\r\n\t// Difference between actual and reference temperature = D2 - Tref\r\n\tdT = ( int32_t )adc_temperature - ( ( int32_t )eeprom_coeff[REFERENCE_TEMPERATURE_INDEX] << 8 );\r\n\r\n\t// Actual temperature = 2000 + dT * TEMPSENS\r\n\tTEMP = 2000 + ( ( int64_t )dT * ( int64_t )eeprom_coeff[TEMP_COEFF_OF_TEMPERATURE_INDEX] >> 23 ) ;\r\n\r\n\t// Second order temperature compensation\r\n\tif ( TEMP < 2000 )\r\n\t{\r\n\t\tT2 = ( 3 * ( ( int64_t )dT  * ( int64_t )dT  ) ) >> 33;\r\n\t\tOFF2 = 61 * ( ( int64_t )TEMP - 2000 ) * ( ( int64_t )TEMP - 2000 ) / 16 ;\r\n\t\tSENS2 = 29 * ( ( int64_t )TEMP - 2000 ) * ( ( int64_t )TEMP - 2000 ) / 16 ;\r\n\r\n\t\tif ( TEMP < -1500 )\r\n\t\t{\r\n\t\t\tOFF2 += 17 * ( ( int64_t )TEMP + 1500 ) * ( ( int64_t )TEMP + 1500 ) ;\r\n\t\t\tSENS2 += 9 * ( ( int64_t )TEMP + 1500 ) * ( ( int64_t )TEMP + 1500 ) ;\r\n\t\t}\r\n\t}\r\n\telse\r\n\t{\r\n\t\tT2 = ( 5 * ( ( int64_t )dT  * ( int64_t )dT  ) ) >> 38;\r\n\t\tOFF2 = 0 ;\r\n\t\tSENS2 = 0 ;\r\n\t}\r\n\r\n\t// OFF = OFF_T1 + TCO * dT\r\n\tOFF = ( ( int64_t )( eeprom_coeff[PRESSURE_OFFSET_INDEX] ) << 17 ) + ( ( ( int64_t )( eeprom_coeff[TEMP_COEFF_OF_PRESSURE_OFFSET_INDEX] ) * dT ) >> 6 ) ;\r\n\tOFF -= OFF2 ;\r\n\r\n\t// Sensitivity at actual temperature = SENS_T1 + TCS * dT\r\n\tSENS = ( ( int64_t )eeprom_coeff[PRESSURE_SENSITIVITY_INDEX] << 16 ) + ( ( ( int64_t )eeprom_coeff[TEMP_COEFF_OF_PRESSURE_SENSITIVITY_INDEX] * dT ) >> 7 ) ;\r\n\tSENS -= SENS2 ;\r\n\r\n\t// Temperature compensated pressure = D1 * SENS - OFF\r\n\tP = ( ( ( adc_pressure * SENS ) >> 21 ) - OFF ) >> 15 ;\r\n\r\n\t*temperature = ( ( float )TEMP - T2 ) / 100;\r\n\t*pressure = ( float )P / 100;\r\n\r\n\treturn status;\r\n}\r\n\r\n/**\r\n * \\brief CRC check\r\n *\r\n * \\param[in] uint16_t *: List of EEPROM coefficients\r\n * \\param[in] uint8_t : crc to compare\r\n *\r\n * \\return bool : TRUE if CRC is OK, FALSE if KO\r\n */\r\nbool psensor_crc_check ( uint16_t *n_prom, uint8_t crc )\r\n{\r\n\tuint8_t cnt, n_bit;\r\n\tuint16_t n_rem, crc_read;\r\n\r\n\tn_rem = 0x00;\r\n\tcrc_read = n_prom[0];\r\n\tn_prom[COEFFICIENT_NUMBERS] = 0;\r\n\tn_prom[0] = ( 0x0FFF & ( n_prom[0] ) ); // Clear the CRC byte\r\n\r\n\tfor ( cnt = 0 ; cnt < ( COEFFICIENT_NUMBERS + 1 ) * 2 ; cnt++ )\r\n\t{\r\n\r\n\t\t// Get next byte\r\n\t\tif ( cnt % 2 == 1 )\r\n\t\t{\r\n\t\t\tn_rem ^=  n_prom[cnt >> 1] & 0x00FF ;\r\n\t\t}\r\n\t\telse\r\n\t\t{\r\n\t\t\tn_rem ^=  n_prom[cnt >> 1] >> 8 ;\r\n\t\t}\r\n\r\n\t\tfor ( n_bit = 8; n_bit > 0 ; n_bit-- )\r\n\t\t{\r\n\r\n\t\t\tif ( n_rem & 0x8000 )\r\n\t\t\t{\r\n\t\t\t\tn_rem = ( n_rem << 1 ) ^ 0x3000;\r\n\t\t\t}\r\n\t\t\telse\r\n\t\t\t{\r\n\t\t\t\tn_rem <<= 1;\r\n\t\t\t}\r\n\t\t}\r\n\t}\r\n\r\n\tn_rem >>= 12;\r\n\tn_prom[0] = crc_read;\r\n\r\n\treturn  ( n_rem == crc );\r\n}\r\n\r\n#ifdef __cplusplus\r\n}\r\n#endif"
+              }
+            }
+          },
+          "md5": "fcd9d75ed4f772f386cdcd8b4239e0a3"
+        },
+        "tsd305": {
+          "libName": "tsd305",
+          "manufacturer": "TEConnectivity",
+          "description": "Infrared Temperature Sensor",
+          "version": "",
+          "type": "Infrared Temperature Sensor",
+          "eelVersion": "3",
+          "shoppingCartLinks": {
+            "digikey": {
+              "links": {
+                "info": "https://www.digikey.com/product-detail/en/te-connectivity-measurement-specialties/DPP902S000/223-1786-ND/6685752"
+              },
+              "cartData": {
+                "part": "223-1786-ND",
+                "partid": "6685752",
+                "source": "dkstudio",
+                "qty": "1"
+              }
+            }
+          },
+          "requires": [
+            "embedded",
+            "i2c"
+          ],
+          "elements": [
+            {
+              "name": "TSD305",
+              "type": "EmbeddedTSD305",
+              "icon": "EmbeddedTempHumidity.svg",
+              "defaultAbility": "readTemperature",
+              "defaultTrigger": "temperatureRead",
+              "hidden": false,
+              "abilities": [
+                {
+                  "name": "setup",
+                  "hidden": true,
+                  "triggers": [],
+                  "code": "tsd305_init(ATMO_PROPERTY(undefined, i2cInstance), ATMO_PROPERTY(undefined, gpioInstance), ATMO_PROPERTY(undefined, weatherShield), ATMO_PROPERTY(undefined, weatherShieldCsA), ATMO_PROPERTY(undefined, weatherShieldCsB), ATMO_PROPERTY(undefined, weatherShieldEn));\r\nreturn ATMO_Status_Success;"
+                },
+                {
+                  "name": "readTemperature",
+                  "triggers": [
+                    "temperatureRead"
+                  ],
+                  "code": "    float temperature, objectTemperature = 0;\r\n    if(tsd305_read_temperature_and_object_temperature(&temperature, &objectTemperature) != tsd305_status_ok)\r\n    {\r\n        return ATMO_Status_Fail;\r\n    }\r\n    ATMO_CreateValueFloat(out, temperature);\r\n    return ATMO_Status_Success;"
+                },
+                {
+                  "name": "readObjectTemperature",
+                  "triggers": [
+                    "objectTemperatureRead"
+                  ],
+                  "code": "    float temperature, objectTemperature = 0;\r\n    if(tsd305_read_temperature_and_object_temperature(&temperature, &objectTemperature) != tsd305_status_ok)\r\n    {\r\n        return ATMO_Status_Fail;\r\n    }\r\n    ATMO_CreateValueFloat(out, objectTemperature);\r\n    return ATMO_Status_Success;"
+                }
+              ],
+              "properties": [
+                {
+                  "name": "i2cInstance",
+                  "input": "driverInstance",
+                  "driverType": "i2c"
+                },
+                {
+                  "name": "gpioInstance",
+                  "input": "driverInstance",
+                  "driverType": "gpio"
+                },
+                {
+                  "name": "weatherShield",
+                  "input": "checkbox",
+                  "value": true
+                },
+                {
+                  "name": "weatherShieldCsA",
+                  "input": "number",
+                  "value": 9
+                },
+                {
+                  "name": "weatherShieldCsB",
+                  "input": "number",
+                  "value": 10
+                },
+                {
+                  "name": "weatherShieldEn",
+                  "input": "number",
+                  "value": 11
+                }
+              ],
+              "triggers": [],
+              "variables": [],
+              "language": {
+                "en-US": {
+                  "EmbeddedTSD305": "TSD305 Temperature",
+                  "i2cInstance": "I2C Driver Instance",
+                  "gpioInstance": "GPIO Driver Instance",
+                  "i2cAddress": "I2C Address",
+                  "readTemperature": "Read Temperature (°C)",
+                  "temperatureRead": "Temperature Read",
+                  "readObjectTemperature": "Read Object Temperature (°C)",
+                  "objectTemperatureRead": "Object Temperature Read",
+                  "weatherShield": "TE Arduino Weather Shield",
+                  "weatherShieldCsA": "Weather Shield CSA Pin",
+                  "weatherShieldCsB": "Weather Shield CSB Pin",
+                  "weatherShieldEn": "Weather Shield EN Pin"
+                }
+              }
+            }
+          ],
+          "files": {
+            "common": {
+              "headers": {
+                "tsd305.h": "#ifndef _ATMO_TSD305_H_\r\n#define _ATMO_TSD305_H_\r\n\r\n#ifdef __cplusplus\r\nextern \"C\"\r\n{\r\n#endif\r\n\r\n#include \"../atmo/core.h\"\r\n#include \"../app_src/atmosphere_platform.h\"\r\n\r\n\r\nenum tsd305_status\r\n{\r\n\ttsd305_status_ok,\r\n\ttsd305_status_no_i2c_acknowledge,\r\n\ttsd305_status_i2c_transfer_error,\r\n\ttsd305_status_busy,\r\n\ttsd305_status_memory_error,\r\n\ttsd305_status_out_of_range\r\n};\r\n\r\n// Functions\r\nvoid tsd305_init( ATMO_DriverInstanceHandle_t i2cInstance, ATMO_DriverInstanceHandle_t gpioInstance, bool weatherShieldEnable, ATMO_GPIO_Device_Pin_t weatherShieldCsA, ATMO_GPIO_Device_Pin_t weatherShieldCsB, ATMO_GPIO_Device_Pin_t weatherShieldEn );\r\n\r\n/**\r\n* \\brief Reads the temperature and pressure ADC value and compute the\r\n* compensated values.\r\n*\r\n* \\param[out] float* : Celsius Degree temperature value\r\n* \\param[out] float* : mbar pressure value\r\n*\r\n* \\return tsd305_status : status of TSD305\r\n*       - tsd305_status_ok : I2C transfer completed successfully\r\n*       - tsd305_status_i2c_transfer_error : Problem with i2c transfer\r\n*       - tsd305_status_no_i2c_acknowledge : I2C did not acknowledge\r\n*       - tsd305_status_busy : Sensor is busy\r\n*       - tsd305_status_memory_error : Sensor EEPROM memory error\r\n*/\r\nenum tsd305_status\r\ntsd305_read_temperature_and_object_temperature( float *temperature,\r\n        float *object_temperature );\r\n\r\n#ifdef __cplusplus\r\n}\r\n#endif\r\n\r\n#endif"
+              },
+              "objects": {
+                "tsd305.c": "#include \"tsd305.h\"\r\n#include \"../i2c/i2c.h\"\r\n#include \"../gpio/gpio.h\"\r\n\r\n// TSD305 device address\r\n#define TSD305_ADDR 0x1e // 0b0011110\r\n\r\n// TSD305 device commands\r\n#define TSD305_CONVERT_ADCS_COMMAND 0xaf\r\n\r\n#define TSD305_STATUS_BUSY_MASK 0x20\r\n#define TSD305_STATUS_MEMOTY_ERROR_MASK 0x04\r\n\r\n#define TSD305_CONVERSION_TIME 100\r\n\r\n#define LUT_AMBIENT_SIZE 22\r\n#define LUT_ADC_SIZE 21\r\n\r\n#define ASSERT_STATUS(x)            \\\r\n\tstatus = x;                     \\\r\n\tif (status != tsd305_status_ok) \\\r\n\t\treturn status;\r\n\r\n// Object temperature look up table\r\nstatic const int32_t object_temperature_lut[LUT_AMBIENT_SIZE + 1][LUT_ADC_SIZE +\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t  1] = {{0, 0, 5, 10, 15, 20, 25, 30, 35, 40, 45,\r\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100},\r\n\t{-20, 935975, 1202135, 1482033, 1776117, 2084843, 2408670, 2748065,\r\n\t 3103501, 3475458, 3864419, 4270880, 4695336, 5138293, 5600262, 6081756,\r\n\t 6583301, 7105426, 7648664, 8213558, 8800655, 9410506},\r\n\t{-15, 706695, 967783, 1242348, 1530828, 1833670, 2151327, 2484255,\r\n\t 2832918, 3197786, 3579336, 3978052, 4394420, 4828936, 5282101, 5754421,\r\n\t 6246409, 6758583, 7291471, 7845600, 8421509, 9019740},\r\n\t{-10, 474076, 730091, 999323, 1282199, 1579159, 1890644, 2217105,\r\n\t 2558995, 2916776, 3290914, 3681884, 4090164, 4516239, 4960601, 5423746,\r\n\t 5906177, 6408402, 6930938, 7474302, 8039024, 8625634},\r\n\t{-5, 238406, 489349, 753247, 1030519, 1321597, 1626911, 1946904,\r\n\t 2282021, 2632714, 2999441, 3382665, 3782858, 4200492, 4636050, 5090020,\r\n\t 5562893, 6055169, 6567354, 7099955, 7653488, 8228477},\r\n\t{0, 0, 245872, 504435, 776105, 1061298, 1360443, 1673967,\r\n\t 2002311, 2345917, 2705232, 3080712, 3472815, 3882009, 4308764, 4753558,\r\n\t 5216875, 5699202, 6201033, 6722870, 7265216, 7828584},\r\n\t{5, -240800, 0, 25323, 519295, 798606, 1091580, 1398638,\r\n\t 1720208, 2056726, 2408629, 2776363, 3160378, 3561131, 3979083, 4414703,\r\n\t 4868463, 5340840, 5832320, 6343392, 6874552, 7426298},\r\n\t{10, -483624, -247897, 0, 260461, 533890, 820692, 1121283,\r\n\t 1436081, 1765510, 2110002, 2469990, 2845917, 3238230, 3647379, 4073823,\r\n\t 4518025, 4980453, 5461582, 5961890, 6481861, 7021987},\r\n\t{15, -728077, -497420, -254857, 0, 267545, 548177, 842301,\r\n\t 1150326, 1472668, 1809746, 2161990, 2529828, 2913700, 3314047, 3731315,\r\n\t 4165961, 4618439, 5089216, 5578759, 6087544, 6616048},\r\n\t{20, -973729, -748144, -510916, -261662, 0, 274462, 562117,\r\n\t 863369, 1178623, 1508291, 1852789, 2212539, 2587970, 2979513, 3387607,\r\n\t 3812695, 4255225, 4715649, 5194429, 5692026, 6208909},\r\n\t{25, -1220128, -999615, -767719, -524070, -268291, 0, 281189,\r\n\t 575668, 883834, 1206089, 1542842, 1894504, 2261494, 2644235, 3043154,\r\n\t 3458684, 3891264, 4341338, 4809352, 5295762, 5801025},\r\n\t{30, -1466786, -1251346, -1024783, -786738, -536841, -274722, 0,\r\n\t 287706, 588784, 903628, 1232635, 1576210, 1934759, 2308696, 2698440,\r\n\t 3104413, 3527043, 3966766, 4424016, 4899238, 5392880},\r\n\t{35, -1713188, -1502819, -1281591, -1049150, -805136, -549187, -280933,\r\n\t 0, 293990, 601423, 922684, 1258170, 1608279, 1973413, 2353982,\r\n\t 2750397, 3163080, 3592449, 4038935, 4502970, 4984991},\r\n\t{40, -1958788, -1753491, -1537596, -1310759, -1072627,\r\n\t -822849, -561062, -286903, 0, 300020, 613536,\r\n\t 940935, 1282602, 1638933, 2010327, 2397185, 2799918,\r\n\t 3218936, 3654658, 4107505, 4577905},\r\n\t{45, -2203005, -2002779, -1792219, -1570984, -1338737,\r\n\t -1095129, -839810, -572423, -292608, 0, 305772,\r\n\t 625081, 958308, 1305836, 1668054, 2045356, 2438139,\r\n\t 2846805, 3271763, 3713423, 4172201},\r\n\t{50, -2445228, -2250074, -2044846, -1829217, -1602853,\r\n\t -1365415, -1116563, -855949, -583222, -298026, 0,\r\n\t 311221, 636007, 974733, 1327775, 1695520, 2078353,\r\n\t 2476669, 2890861, 3321334, 3768491},\r\n\t{55, -2684813, -2494731, -2294837, -2084811, -1864329,\r\n\t -1633062, -1390678, -1136837, -871198, -593414, -303133,\r\n\t 0, 316345, 646267, 990135, 1348323, 1721207,\r\n\t 2109170, 2512599, 2931884, 3367420},\r\n\t{60, -2921081, -2736070, -2541511, -2337088, -2122490,\r\n\t -1897393, -1661477, -1414409, -1155858, -885485, -602949,\r\n\t -307905, 0, 321119, 655812, 1004442, 1367377,\r\n\t 1744988, 2137653, 2545751, 2969666},\r\n\t{65, -3153319, -2973381, -2784154, -2585337, -2376620,\r\n\t -2157696, -1928246, -1687951, -1436487, -1173526, -898737,\r\n\t -611780, -312316, 0, 325518, 664590, 1017576,\r\n\t 1384836, 1766736, 2163646, 2575941},\r\n\t{70, -3380782, -3205915, -3022022, -2828808, -2625975,\r\n\t -2413221, -2190238, -1956716, -1712341, -1456792, -1189747,\r\n\t -910879, -619856, -316343, 0, 329515, 672552,\r\n\t 1029460, 1400596, 1786318, 2186992},\r\n\t{75, -3602685, -3432890, -3254330, -3066721, -2869771,\r\n\t -2663187, -2446671, -2219922, -1982635, -1734498, -1475198,\r\n\t -1204419, -921836, -627126, -319958, 0, 333087,\r\n\t 679644, 1040014, 1414550, 1803603},\r\n\t{80, -3818210, -3653487, -3480260, -3298254, -3107188,\r\n\t -2906774, -2696726, -2476751, -2246551, -2005826, -1754271,\r\n\t -1491580, -1217438, -931531, -633539, -323137, 0,\r\n\t 336205, 685812, 1049160, 1426591},\r\n\t{85, -4026501, -3866849, -3698957, -3522555, -3337371,\r\n\t -3143129, -2939548, -2726345, -2503233, -2269920, -2026111,\r\n\t -1771507, -1505806, -1228703, -939885, -639041, -325853,\r\n\t 0, 338843, 691003, 1056813}};\r\n\r\nenum status_code\r\n{\r\n\tSTATUS_OK = 0x00,\r\n\tSTATUS_ERR_OVERFLOW = 0x01,\r\n\tSTATUS_ERR_TIMEOUT = 0x02,\r\n};\r\n\r\nstatic bool tsd305_coeff_read;\r\nstatic struct\r\n{\r\n\tuint16_t lot_number;\r\n\tuint16_t serial_number;\r\n\r\n\tint16_t min_ambient_temperature;\r\n\tint16_t max_ambient_temperature;\r\n\tint16_t min_object_temperature;\r\n\tint16_t max_object_temperature;\r\n\r\n\tint16_t adc_calibration_factor;\r\n\r\n} tsd305_eeprom_coeff;\r\n\r\nstatic ATMO_DriverInstanceHandle_t _ATMO_TSD305_I2cInstance = 0;\r\nstatic ATMO_DriverInstanceHandle_t _ATMO_TSD305_GpioInstance = 0;\r\n\r\nstatic bool _ATMO_TSD305_WeatherShieldEnable = false;\r\nstatic ATMO_GPIO_Device_Pin_t _ATMO_TSD305_weatherShieldCsA = 0;\r\nstatic ATMO_GPIO_Device_Pin_t _ATMO_TSD305_weatherShieldCsB = 0;\r\nstatic ATMO_GPIO_Device_Pin_t _ATMO_TSD305_weatherShieldEn = 0;\r\n\r\nstatic void tsd305_enableChipWeatherShield()\r\n{\r\n\tif(_ATMO_TSD305_WeatherShieldEnable)\r\n\t{\r\n\t\tATMO_GPIO_SetPinState(_ATMO_TSD305_GpioInstance, _ATMO_TSD305_weatherShieldCsA, ATMO_GPIO_PinState_Low);\r\n\t\tATMO_GPIO_SetPinState(_ATMO_TSD305_GpioInstance, _ATMO_TSD305_weatherShieldCsB, ATMO_GPIO_PinState_High);\r\n\t\tATMO_GPIO_SetPinState(_ATMO_TSD305_GpioInstance, _ATMO_TSD305_weatherShieldEn, ATMO_GPIO_PinState_High);\r\n\t}\r\n}\r\n\r\nvoid tsd305_init(ATMO_DriverInstanceHandle_t i2cInstance, ATMO_DriverInstanceHandle_t gpioInstance, bool weatherShieldEnable, ATMO_GPIO_Device_Pin_t weatherShieldCsA, ATMO_GPIO_Device_Pin_t weatherShieldCsB, ATMO_GPIO_Device_Pin_t weatherShieldEn )\r\n{\r\n\t_ATMO_TSD305_I2cInstance = i2cInstance;\r\n\ttsd305_coeff_read = false;\r\n\t_ATMO_TSD305_GpioInstance = gpioInstance;\r\n\t_ATMO_TSD305_WeatherShieldEnable = weatherShieldEnable;\r\n\t_ATMO_TSD305_weatherShieldCsA = weatherShieldCsA;\r\n\t_ATMO_TSD305_weatherShieldCsB = weatherShieldCsB;\r\n\t_ATMO_TSD305_weatherShieldEn = weatherShieldEn;\r\n\r\n\tif( _ATMO_TSD305_WeatherShieldEnable )\r\n\t{\r\n\t\tATMO_GPIO_Config_t gpio;\r\n\t\tgpio.pinMode = ATMO_GPIO_PinMode_Output_PushPull;\r\n\t\tgpio.initialState = ATMO_GPIO_PinState_Low;\r\n\t\tATMO_GPIO_SetPinConfiguration(_ATMO_TSD305_GpioInstance, _ATMO_TSD305_weatherShieldCsA, &gpio);\r\n\t\tATMO_GPIO_SetPinConfiguration(_ATMO_TSD305_GpioInstance, _ATMO_TSD305_weatherShieldCsB, &gpio);\r\n\t\tATMO_GPIO_SetPinConfiguration(_ATMO_TSD305_GpioInstance, _ATMO_TSD305_weatherShieldEn, &gpio);\r\n\t}\r\n}\r\n\r\n/**\r\n * \\brief Reads the tsd305 EEPROM coefficient stored at address provided.\r\n *\r\n * \\param[in] uint8_t : Address of coefficient in EEPROM\r\n * \\param[out] uint16_t* : Value read in EEPROM\r\n *\r\n * \\return tsd305_status : status of TSD305\r\n *       - tsd305_status_ok : I2C transfer completed successfully\r\n *       - tsd305_status_i2c_transfer_error : Problem with i2c transfer\r\n *       - tsd305_status_busy : Sensor is busy\r\n *       - tsd305_status_memory_error : Sensor EEPROM memory error\r\n */\r\nstatic enum tsd305_status tsd305_read_eeprom_coeff(uint8_t address, uint16_t *coeff)\r\n{\r\n\tenum tsd305_status status;\r\n\tenum status_code i2c_status;\r\n\tuint8_t buffer[3];\r\n\tuint8_t status_byte = 0;\r\n\tuint8_t i;\r\n\r\n\tif (ATMO_I2C_MasterWrite(_ATMO_TSD305_I2cInstance, TSD305_ADDR, NULL, 0, &address, 1, 1000) != ATMO_I2C_Status_Success)\r\n\t{\r\n\t\treturn tsd305_status_i2c_transfer_error;\r\n\t}\r\n\r\n\tATMO_PLATFORM_DelayMilliseconds(2);\r\n\r\n\tif (ATMO_I2C_MasterRead(_ATMO_TSD305_I2cInstance, TSD305_ADDR, NULL, 0, buffer, 3, 1000) != ATMO_I2C_Status_Success)\r\n\t{\r\n\t\treturn tsd305_status_i2c_transfer_error;\r\n\t}\r\n\r\n\t*coeff = (buffer[1] << 8) | buffer[2];\r\n\r\n\treturn tsd305_status_ok;\r\n}\r\n\r\n/**\r\n * \\brief Reads the tsd305 EEPROM coefficients to store them for computation.\r\n *\r\n * \\return tsd305_status : status of TSD305\r\n *       - tsd305_status_ok : I2C transfer completed successfully\r\n *       - tsd305_status_i2c_transfer_error : Problem with i2c transfer\r\n *       - tsd305_status_no_i2c_acknowledge : I2C did not acknowledge\r\n *       - tsd305_status_busy : Sensor is busy\r\n *       - tsd305_status_memory_error : Sensor EEPROM memory error\r\n */\r\nenum tsd305_status tsd305_read_eeprom(void)\r\n{\r\n\tenum tsd305_status status = tsd305_status_ok;\r\n\r\n\tASSERT_STATUS(tsd305_read_eeprom_coeff(0x00, &tsd305_eeprom_coeff.lot_number));\r\n\r\n\tASSERT_STATUS(tsd305_read_eeprom_coeff(0x01, &tsd305_eeprom_coeff.serial_number));\r\n\r\n\tASSERT_STATUS(tsd305_read_eeprom_coeff(\r\n\t\t0x1a, (uint16_t *)&tsd305_eeprom_coeff.min_ambient_temperature));\r\n\tASSERT_STATUS(tsd305_read_eeprom_coeff(\r\n\t\t0x1b, (uint16_t *)&tsd305_eeprom_coeff.max_ambient_temperature));\r\n\tASSERT_STATUS(tsd305_read_eeprom_coeff(\r\n\t\t0x1c, (uint16_t *)&tsd305_eeprom_coeff.min_object_temperature));\r\n\tASSERT_STATUS(tsd305_read_eeprom_coeff(\r\n\t\t0x1d, (uint16_t *)&tsd305_eeprom_coeff.max_object_temperature));\r\n\tASSERT_STATUS(tsd305_read_eeprom_coeff(\r\n\t\t0x2c, (uint16_t *)&tsd305_eeprom_coeff.adc_calibration_factor));\r\n\r\n\ttsd305_coeff_read = true;\r\n\r\n\treturn status;\r\n}\r\n\r\n/**\r\n * \\brief Retrieve data from 2D look up table in program memory\r\n *\r\n * \\return data at given coordinates\r\n */\r\nint32_t tsd305_get_lut_at(uint8_t x, uint8_t y)\r\n{\r\n\treturn (object_temperature_lut[x][y]);\r\n}\r\n\r\n/**\r\n * \\brief Triggers conversion and read ADC value\r\n *\r\n * \\param[in] uint8_t : Command used for conversion (will determine Temperature\r\n * vs Pressure and osr)\r\n * \\param[out] uint32_t* : ADC value.\r\n *\r\n * \\return tsd305_status : status of TSD305\r\n *       - tsd305_status_ok : I2C transfer completed successfully\r\n *       - tsd305_status_i2c_transfer_error : Problem with i2c transfer\r\n *       - tsd305_status_no_i2c_acknowledge : I2C did not acknowledge\r\n *       - tsd305_status_busy : Sensor is busy\r\n *       - tsd305_status_memory_error : Sensor EEPROM memory error\r\n */\r\nenum tsd305_status tsd305_conversion_and_read_adcs(uint32_t *adc_object,\r\n\t\t\t\t\t\t\t\t\t\t\t\t   uint32_t *adc_ambient)\r\n{\r\n\tenum tsd305_status status;\r\n\tuint8_t i2c_status;\r\n\tuint8_t buffer[7];\r\n\tuint8_t status_byte = 0;\r\n\tuint8_t i;\r\n\r\n\t/* Read data */\r\n\tuint8_t cmd = TSD305_CONVERT_ADCS_COMMAND;\r\n\tif (ATMO_I2C_MasterWrite(_ATMO_TSD305_I2cInstance, TSD305_ADDR, NULL, 0, &cmd, 1, 1000) != ATMO_I2C_Status_Success)\r\n\t{\r\n\t\treturn tsd305_status_i2c_transfer_error;\r\n\t}\r\n\r\n\tATMO_PLATFORM_DelayMilliseconds(TSD305_CONVERSION_TIME);\r\n\r\n\tif (ATMO_I2C_MasterRead(_ATMO_TSD305_I2cInstance, TSD305_ADDR, NULL, 0, buffer, 7, 1000) != ATMO_I2C_Status_Success)\r\n\t{\r\n\t\treturn tsd305_status_i2c_transfer_error;\r\n\t}\r\n\r\n\tstatus_byte = buffer[0];\r\n\tif (status_byte & TSD305_STATUS_BUSY_MASK)\r\n\t\treturn tsd305_status_busy;\r\n\tif (status_byte & TSD305_STATUS_MEMOTY_ERROR_MASK)\r\n\t\treturn tsd305_status_memory_error;\r\n\r\n\t*adc_object = ((uint32_t)buffer[1] << 16) | ((uint32_t)buffer[2] << 8) |\r\n\t\t\t\t  (uint32_t)buffer[3];\r\n\t*adc_ambient = ((uint32_t)buffer[4] << 16) | ((uint32_t)buffer[5] << 8) |\r\n\t\t\t\t   (uint32_t)buffer[6];\r\n\r\n\treturn tsd305_status_ok;\r\n}\r\n\r\n/**\r\n * \\brief Reads the temperature and pressure ADC value and compute the\r\n * compensated values.\r\n *\r\n * \\param[out] float* : Celsius Degree temperature value\r\n * \\param[out] float* : mbar pressure value\r\n *\r\n * \\return tsd305_status : status of TSD305\r\n *       - tsd305_status_ok : I2C transfer completed successfully\r\n *       - tsd305_status_i2c_transfer_error : Problem with i2c transfer\r\n *       - tsd305_status_no_i2c_acknowledge : I2C did not acknowledge\r\n *       - tsd305_status_busy : Sensor is busy\r\n *       - tsd305_status_memory_error : Sensor EEPROM memory error\r\n *       - tsd305_status_out_of_range : Sensor is out of range\r\n */\r\nenum tsd305_status\r\ntsd305_read_temperature_and_object_temperature(float *temperature,\r\n\t\t\t\t\t\t\t\t\t\t\t   float *object_temperature)\r\n{\r\n\ttsd305_enableChipWeatherShield();\r\n\r\n\tenum tsd305_status status = tsd305_status_ok;\r\n\r\n\tuint8_t adc_ambient_lut_temperature_index = 1;\r\n\tuint8_t adc_ambient_lut_adc_index_min = 1;\r\n\tuint8_t adc_ambient_lut_adc_index_max = 1;\r\n\tint32_t adc_object, adc_ambient;\r\n\tint32_t amb_min, amb_max;\r\n\tint32_t adc_x1, adc_x2, adc_y1, adc_y2;\r\n\tint32_t obj_min1, obj_max1, obj_min2, obj_max2;\r\n\tfloat object_temperature_min, object_temperature_max;\r\n\r\n\tif (tsd305_coeff_read == false)\r\n\t\tASSERT_STATUS(tsd305_read_eeprom());\r\n\r\n\t// ATMO_PLATFORM_DebugPrint(\"Reading temp\\r\\n\");\r\n\r\n\tASSERT_STATUS(tsd305_conversion_and_read_adcs((uint32_t *)&adc_object,\r\n\t\t\t\t\t\t\t\t\t\t\t\t  (uint32_t *)&adc_ambient));\r\n\r\n\t// ATMO_PLATFORM_DebugPrint(\"Read ADCs\\r\\n\");\r\n\r\n\t*temperature = (float)adc_ambient / 16777216.0f *\r\n\t\t\t\t\t   ((float)tsd305_eeprom_coeff.max_ambient_temperature -\r\n\t\t\t\t\t\t(float)tsd305_eeprom_coeff.min_ambient_temperature) +\r\n\t\t\t\t   (float)tsd305_eeprom_coeff.min_ambient_temperature;\r\n\r\n\tadc_object = (int64_t)(adc_object - 8388608) *\r\n\t\t\t\t tsd305_eeprom_coeff.adc_calibration_factor / 1000;\r\n\r\n\tif (*temperature > tsd305_get_lut_at(1, 0) &&\r\n\t\t*temperature <= tsd305_get_lut_at(LUT_AMBIENT_SIZE, 0))\r\n\t{\r\n\t\t// Look for closest ambient temperature in LUT\r\n\t\twhile (*temperature > tsd305_get_lut_at(adc_ambient_lut_temperature_index, 0) &&\r\n\t\t\t   adc_ambient_lut_temperature_index <= LUT_AMBIENT_SIZE + 1)\r\n\t\t\tadc_ambient_lut_temperature_index++;\r\n\r\n\t\t// Look for closest ADC value in LUT based on min possible ambient\r\n\t\t// temperature\r\n\t\twhile (adc_object > tsd305_get_lut_at(adc_ambient_lut_temperature_index - 1,\r\n\t\t\t\t\t\t\t\t\t\t\t  adc_ambient_lut_adc_index_min) &&\r\n\t\t\t   adc_ambient_lut_adc_index_min <= LUT_ADC_SIZE + 1)\r\n\t\t\tadc_ambient_lut_adc_index_min++;\r\n\r\n\t\t// Look for closest ADC value in LUT based on max possible ambient\r\n\t\t// temperature\r\n\t\twhile (adc_object > tsd305_get_lut_at(adc_ambient_lut_temperature_index,\r\n\t\t\t\t\t\t\t\t\t\t\t  adc_ambient_lut_adc_index_max) &&\r\n\t\t\t   adc_ambient_lut_adc_index_max <= LUT_ADC_SIZE + 1)\r\n\t\t\tadc_ambient_lut_adc_index_max++;\r\n\r\n\t\tamb_min = tsd305_get_lut_at(adc_ambient_lut_temperature_index - 1, 0);\r\n\t\tamb_max = tsd305_get_lut_at(adc_ambient_lut_temperature_index, 0);\r\n\r\n\t\tadc_x1 = tsd305_get_lut_at(adc_ambient_lut_temperature_index - 1,\r\n\t\t\t\t\t\t\t\t   adc_ambient_lut_adc_index_min - 1);\r\n\t\tadc_x2 = tsd305_get_lut_at(adc_ambient_lut_temperature_index - 1,\r\n\t\t\t\t\t\t\t\t   adc_ambient_lut_adc_index_min);\r\n\t\tadc_y1 = tsd305_get_lut_at(adc_ambient_lut_temperature_index,\r\n\t\t\t\t\t\t\t\t   adc_ambient_lut_adc_index_max - 1);\r\n\t\tadc_y2 = tsd305_get_lut_at(adc_ambient_lut_temperature_index,\r\n\t\t\t\t\t\t\t\t   adc_ambient_lut_adc_index_max);\r\n\r\n\t\tobj_min1 = tsd305_get_lut_at(0, adc_ambient_lut_adc_index_min - 1);\r\n\t\tobj_min2 = tsd305_get_lut_at(0, adc_ambient_lut_adc_index_min);\r\n\t\tobj_max1 = tsd305_get_lut_at(0, adc_ambient_lut_adc_index_max - 1);\r\n\t\tobj_max2 = tsd305_get_lut_at(0, adc_ambient_lut_adc_index_max);\r\n\r\n\t\tfloat object_temperature_min = (float)(adc_object - adc_x1) /\r\n\t\t\t\t\t\t\t\t\t\t   (float)(adc_x2 - adc_x1) *\r\n\t\t\t\t\t\t\t\t\t\t   (float)(obj_min2 - obj_min1) +\r\n\t\t\t\t\t\t\t\t\t   obj_min1;\r\n\t\tfloat object_temperature_max = (float)(adc_object - adc_y1) /\r\n\t\t\t\t\t\t\t\t\t\t   (float)(adc_y2 - adc_y1) *\r\n\t\t\t\t\t\t\t\t\t\t   (float)(obj_max2 - obj_max1) +\r\n\t\t\t\t\t\t\t\t\t   obj_max1;\r\n\r\n\t\t*object_temperature =\r\n\t\t\t(*temperature - amb_min) / (amb_max - amb_min) *\r\n\t\t\t\t(object_temperature_max - object_temperature_min) +\r\n\t\t\tobject_temperature_min;\r\n\t}\r\n\telse\r\n\t{\r\n\t\t// ATMO_PLATFORM_DebugPrint(\"Out of range\\r\\n\");\r\n\t\tstatus = tsd305_status_out_of_range;\r\n\t}\r\n\r\n\treturn status;\r\n}",
+                "tsd305.c.orig": "#include \"tsd305.h\"\r\n\r\n#include \"../i2c/i2c.h\"\r\n#include \"../app_src/atmosphere_platform.h\"\r\n\r\nstatic ATMO_DriverInstanceHandle_t _ATMO_TSD305_I2CInstance = 0;\r\n\r\n// TSD305 device commands\r\n#define TSD305_CONVERT_ADCS_COMMAND 0xaf\r\n\r\n#define TSD305_STATUS_BUSY_MASK 0x20\r\n#define TSD305_STATUS_MEMOTY_ERROR_MASK 0x04\r\n\r\n#define TSD305_CONVERSION_TIME 100\r\n\r\n#define ASSERT_STATUS(x)                                                       \\\r\n  status = x;                                                                  \\\r\n  if (status != tsd305_status_ok)                                              \\\r\n    return status;\r\n\r\n#define LUT_AMBIENT_SIZE 22\r\n#define LUT_ADC_SIZE 21\r\n\r\n#define TSD305_ADDR 0x1e // 0b0011110\r\n\r\n// Object temperature look up table\r\nstatic const int32_t object_temperature_lut[LUT_AMBIENT_SIZE + 1][LUT_ADC_SIZE +\r\n                                                                  1] PROGMEM = {\r\n    {0,  0,  5,  10, 15, 20, 25, 30, 35, 40, 45,\r\n     50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100},\r\n    {-20,     935975,  1202135, 1482033, 1776117, 2084843, 2408670, 2748065,\r\n     3103501, 3475458, 3864419, 4270880, 4695336, 5138293, 5600262, 6081756,\r\n     6583301, 7105426, 7648664, 8213558, 8800655, 9410506},\r\n    {-15,     706695,  967783,  1242348, 1530828, 1833670, 2151327, 2484255,\r\n     2832918, 3197786, 3579336, 3978052, 4394420, 4828936, 5282101, 5754421,\r\n     6246409, 6758583, 7291471, 7845600, 8421509, 9019740},\r\n    {-10,     474076,  730091,  999323,  1282199, 1579159, 1890644, 2217105,\r\n     2558995, 2916776, 3290914, 3681884, 4090164, 4516239, 4960601, 5423746,\r\n     5906177, 6408402, 6930938, 7474302, 8039024, 8625634},\r\n    {-5,      238406,  489349,  753247,  1030519, 1321597, 1626911, 1946904,\r\n     2282021, 2632714, 2999441, 3382665, 3782858, 4200492, 4636050, 5090020,\r\n     5562893, 6055169, 6567354, 7099955, 7653488, 8228477},\r\n    {0,       0,       245872,  504435,  776105,  1061298, 1360443, 1673967,\r\n     2002311, 2345917, 2705232, 3080712, 3472815, 3882009, 4308764, 4753558,\r\n     5216875, 5699202, 6201033, 6722870, 7265216, 7828584},\r\n    {5,       -240800, 0,       25323,   519295,  798606,  1091580, 1398638,\r\n     1720208, 2056726, 2408629, 2776363, 3160378, 3561131, 3979083, 4414703,\r\n     4868463, 5340840, 5832320, 6343392, 6874552, 7426298},\r\n    {10,      -483624, -247897, 0,       260461,  533890,  820692,  1121283,\r\n     1436081, 1765510, 2110002, 2469990, 2845917, 3238230, 3647379, 4073823,\r\n     4518025, 4980453, 5461582, 5961890, 6481861, 7021987},\r\n    {15,      -728077, -497420, -254857, 0,       267545,  548177,  842301,\r\n     1150326, 1472668, 1809746, 2161990, 2529828, 2913700, 3314047, 3731315,\r\n     4165961, 4618439, 5089216, 5578759, 6087544, 6616048},\r\n    {20,      -973729, -748144, -510916, -261662, 0,       274462,  562117,\r\n     863369,  1178623, 1508291, 1852789, 2212539, 2587970, 2979513, 3387607,\r\n     3812695, 4255225, 4715649, 5194429, 5692026, 6208909},\r\n    {25,      -1220128, -999615, -767719, -524070, -268291, 0,       281189,\r\n     575668,  883834,   1206089, 1542842, 1894504, 2261494, 2644235, 3043154,\r\n     3458684, 3891264,  4341338, 4809352, 5295762, 5801025},\r\n    {30,      -1466786, -1251346, -1024783, -786738, -536841, -274722, 0,\r\n     287706,  588784,   903628,   1232635,  1576210, 1934759, 2308696, 2698440,\r\n     3104413, 3527043,  3966766,  4424016,  4899238, 5392880},\r\n    {35,      -1713188, -1502819, -1281591, -1049150, -805136, -549187, -280933,\r\n     0,       293990,   601423,   922684,   1258170,  1608279, 1973413, 2353982,\r\n     2750397, 3163080,  3592449,  4038935,  4502970,  4984991},\r\n    {40,      -1958788, -1753491, -1537596, -1310759, -1072627,\r\n     -822849, -561062,  -286903,  0,        300020,   613536,\r\n     940935,  1282602,  1638933,  2010327,  2397185,  2799918,\r\n     3218936, 3654658,  4107505,  4577905},\r\n    {45,       -2203005, -2002779, -1792219, -1570984, -1338737,\r\n     -1095129, -839810,  -572423,  -292608,  0,        305772,\r\n     625081,   958308,   1305836,  1668054,  2045356,  2438139,\r\n     2846805,  3271763,  3713423,  4172201},\r\n    {50,       -2445228, -2250074, -2044846, -1829217, -1602853,\r\n     -1365415, -1116563, -855949,  -583222,  -298026,  0,\r\n     311221,   636007,   974733,   1327775,  1695520,  2078353,\r\n     2476669,  2890861,  3321334,  3768491},\r\n    {55,       -2684813, -2494731, -2294837, -2084811, -1864329,\r\n     -1633062, -1390678, -1136837, -871198,  -593414,  -303133,\r\n     0,        316345,   646267,   990135,   1348323,  1721207,\r\n     2109170,  2512599,  2931884,  3367420},\r\n    {60,       -2921081, -2736070, -2541511, -2337088, -2122490,\r\n     -1897393, -1661477, -1414409, -1155858, -885485,  -602949,\r\n     -307905,  0,        321119,   655812,   1004442,  1367377,\r\n     1744988,  2137653,  2545751,  2969666},\r\n    {65,       -3153319, -2973381, -2784154, -2585337, -2376620,\r\n     -2157696, -1928246, -1687951, -1436487, -1173526, -898737,\r\n     -611780,  -312316,  0,        325518,   664590,   1017576,\r\n     1384836,  1766736,  2163646,  2575941},\r\n    {70,       -3380782, -3205915, -3022022, -2828808, -2625975,\r\n     -2413221, -2190238, -1956716, -1712341, -1456792, -1189747,\r\n     -910879,  -619856,  -316343,  0,        329515,   672552,\r\n     1029460,  1400596,  1786318,  2186992},\r\n    {75,       -3602685, -3432890, -3254330, -3066721, -2869771,\r\n     -2663187, -2446671, -2219922, -1982635, -1734498, -1475198,\r\n     -1204419, -921836,  -627126,  -319958,  0,        333087,\r\n     679644,   1040014,  1414550,  1803603},\r\n    {80,       -3818210, -3653487, -3480260, -3298254, -3107188,\r\n     -2906774, -2696726, -2476751, -2246551, -2005826, -1754271,\r\n     -1491580, -1217438, -931531,  -633539,  -323137,  0,\r\n     336205,   685812,   1049160,  1426591},\r\n    {85,       -4026501, -3866849, -3698957, -3522555, -3337371,\r\n     -3143129, -2939548, -2726345, -2503233, -2269920, -2026111,\r\n     -1771507, -1505806, -1228703, -939885,  -639041,  -325853,\r\n     0,        338843,   691003,   1056813}};\r\n\r\n\r\n/**\r\n * \\brief Reads the tsd305 EEPROM coefficient stored at address provided.\r\n *\r\n * \\param[in] uint8_t : Address of coefficient in EEPROM\r\n * \\param[out] uint16_t* : Value read in EEPROM\r\n *\r\n * \\return tsd305_status : status of TSD305\r\n *       - tsd305_status_ok : I2C transfer completed successfully\r\n *       - tsd305_status_i2c_transfer_error : Problem with i2c transfer\r\n *       - tsd305_status_busy : Sensor is busy\r\n *       - tsd305_status_memory_error : Sensor EEPROM memory error\r\n */\r\nstatic bool _ATMO_TSD305_ReadEEPROMCoeff(uint8_t address, uint16_t *coeff) {\r\n  enum tsd305_status status;\r\n  enum status_code i2c_status;\r\n  uint8_t buffer[3];\r\n  uint8_t status_byte = 0;\r\n  uint8_t i;\r\n  /* Read data */\r\n  Wire.beginTransmission((uint8_t)TSD305_ADDR);\r\n  Wire.write(address);\r\n  // Send the conversion command\r\n  Wire.endTransmission();\r\n  delay(1);\r\n\r\n    ATMO_I2C_Status_t i2cStatus = ATMO_I2C_MasterRead(_ATMO_TSD305_I2CInstance, TSD305_ADDR, &address, 1, buffer, 3, 1000);\r\n\r\n    if(i2cStatus != ATMO_I2C_Status_Success)\r\n    {\r\n        return false;\r\n    }\r\n\r\n  Wire.requestFrom((uint8_t)TSD305_ADDR, 3U);\r\n  for (i = 0; i < 3; i++)\r\n    buffer[i] = Wire.read();\r\n\r\n  if (i2c_status == STATUS_ERR_OVERFLOW)\r\n    return tsd305_status_no_i2c_acknowledge;\r\n  if (i2c_status != STATUS_OK)\r\n    return tsd305_status_i2c_transfer_error;\r\n\r\n  status_byte = buffer[0];\r\n  if (status_byte & TSD305_STATUS_BUSY_MASK)\r\n    return tsd305_status_busy;\r\n  if (status_byte & TSD305_STATUS_MEMOTY_ERROR_MASK)\r\n    return tsd305_status_memory_error;\r\n\r\n  *coeff = (buffer[1] << 8) | buffer[2];\r\n\r\n  return tsd305_status_ok;\r\n}\r\n\r\n/**\r\n * \\brief Reads the tsd305 EEPROM coefficient stored at address provided.\r\n *\r\n * \\param[in] uint8_t : Address of coefficient in EEPROM\r\n * \\param[out] float* : IEEE-745 Value read in EEPROM\r\n *\r\n * \\return tsd305_status : status of TSD305\r\n *       - tsd305_status_ok : I2C transfer completed successfully\r\n *       - tsd305_status_i2c_transfer_error : Problem with i2c transfer\r\n *       - tsd305_status_busy : Sensor is busy\r\n *       - tsd305_status_memory_error : Sensor EEPROM memory error\r\n */\r\nenum tsd305_status tsd305::read_eeprom_float(uint8_t address, float *value) {\r\n  enum tsd305_status status;\r\n  uint16_t h_word, l_word;\r\n  uint32_t word;\r\n\r\n  ASSERT_STATUS(read_eeprom_coeff(address, &h_word));\r\n  ASSERT_STATUS(read_eeprom_coeff(address + 1, &l_word));\r\n\r\n  word = (uint32_t)h_word << 16 | l_word;\r\n  *value = *(float *)&word;\r\n\r\n  return tsd305_status_ok;\r\n}\r\n\r\n/**\r\n * \\brief Reads the tsd305 EEPROM coefficients to store them for computation.\r\n *\r\n * \\return tsd305_status : status of TSD305\r\n *       - tsd305_status_ok : I2C transfer completed successfully\r\n *       - tsd305_status_i2c_transfer_error : Problem with i2c transfer\r\n *       - tsd305_status_no_i2c_acknowledge : I2C did not acknowledge\r\n *       - tsd305_status_busy : Sensor is busy\r\n *       - tsd305_status_memory_error : Sensor EEPROM memory error\r\n */\r\nenum tsd305_status tsd305::read_eeprom(void) {\r\n  enum tsd305_status status = tsd305_status_ok;\r\n\r\n  ASSERT_STATUS(read_eeprom_coeff(0x00, &eeprom_coeff.lot_number));\r\n\r\n  ASSERT_STATUS(read_eeprom_coeff(0x01, &eeprom_coeff.serial_number));\r\n\r\n  ASSERT_STATUS(read_eeprom_coeff(\r\n      0x1a, (uint16_t *)&eeprom_coeff.min_ambient_temperature));\r\n  ASSERT_STATUS(read_eeprom_coeff(\r\n      0x1b, (uint16_t *)&eeprom_coeff.max_ambient_temperature));\r\n  ASSERT_STATUS(read_eeprom_coeff(\r\n      0x1c, (uint16_t *)&eeprom_coeff.min_object_temperature));\r\n  ASSERT_STATUS(read_eeprom_coeff(\r\n      0x1d, (uint16_t *)&eeprom_coeff.max_object_temperature));\r\n  ASSERT_STATUS(read_eeprom_coeff(\r\n      0x2c, (uint16_t *)&eeprom_coeff.adc_calibration_factor));\r\n\r\n  tsd305_coeff_read = true;\r\n\r\n  return status;\r\n}\r\n\r\n/**\r\n * \\brief Retrieve data from 2D look up table in program memory\r\n *\r\n * \\return data at given coordinates\r\n */\r\nint32_t tsd305::get_lut_at(uint8_t x, uint8_t y) {\r\n  return (int32_t)pgm_read_dword(&(object_temperature_lut[x][y]));\r\n}\r\n\r\n/**\r\n * \\brief Triggers conversion and read ADC value\r\n *\r\n * \\param[in] uint8_t : Command used for conversion (will determine Temperature\r\n * vs Pressure and osr)\r\n * \\param[out] uint32_t* : ADC value.\r\n *\r\n * \\return tsd305_status : status of TSD305\r\n *       - tsd305_status_ok : I2C transfer completed successfully\r\n *       - tsd305_status_i2c_transfer_error : Problem with i2c transfer\r\n *       - tsd305_status_no_i2c_acknowledge : I2C did not acknowledge\r\n *       - tsd305_status_busy : Sensor is busy\r\n *       - tsd305_status_memory_error : Sensor EEPROM memory error\r\n */\r\nenum tsd305_status tsd305::conversion_and_read_adcs(uint32_t *adc_object,\r\n                                                    uint32_t *adc_ambient) {\r\n  enum tsd305_status status;\r\n  uint8_t i2c_status;\r\n  uint8_t buffer[7];\r\n  uint8_t status_byte = 0;\r\n  uint8_t i;\r\n\r\n  /* Read data */\r\n  Wire.beginTransmission((uint8_t)TSD305_ADDR);\r\n  Wire.write((uint8_t)TSD305_CONVERT_ADCS_COMMAND);\r\n  i2c_status = Wire.endTransmission();\r\n  delay(TSD305_CONVERSION_TIME);\r\n\r\n  Wire.requestFrom((uint8_t)TSD305_ADDR, 7U);\r\n  for (i = 0; i < 7; i++)\r\n    buffer[i] = Wire.read();\r\n\r\n  // Send the conversion command\r\n\r\n  if (i2c_status == STATUS_ERR_OVERFLOW)\r\n    return tsd305_status_no_i2c_acknowledge;\r\n  if (i2c_status != STATUS_OK)\r\n    return tsd305_status_i2c_transfer_error;\r\n\r\n  status_byte = buffer[0];\r\n  if (status_byte & TSD305_STATUS_BUSY_MASK)\r\n    return tsd305_status_busy;\r\n  if (status_byte & TSD305_STATUS_MEMOTY_ERROR_MASK)\r\n    return tsd305_status_memory_error;\r\n\r\n  *adc_object = ((uint32_t)buffer[1] << 16) | ((uint32_t)buffer[2] << 8) |\r\n                (uint32_t)buffer[3];\r\n  *adc_ambient = ((uint32_t)buffer[4] << 16) | ((uint32_t)buffer[5] << 8) |\r\n                 (uint32_t)buffer[6];\r\n\r\n  return tsd305_status_ok;\r\n}\r\n\r\n/**\r\n * \\brief Reads the temperature and pressure ADC value and compute the\r\n * compensated values.\r\n *\r\n * \\param[out] float* : Celsius Degree temperature value\r\n * \\param[out] float* : mbar pressure value\r\n *\r\n * \\return tsd305_status : status of TSD305\r\n *       - tsd305_status_ok : I2C transfer completed successfully\r\n *       - tsd305_status_i2c_transfer_error : Problem with i2c transfer\r\n *       - tsd305_status_no_i2c_acknowledge : I2C did not acknowledge\r\n *       - tsd305_status_busy : Sensor is busy\r\n *       - tsd305_status_memory_error : Sensor EEPROM memory error\r\n *       - tsd305_status_out_of_range : Sensor is out of range\r\n */\r\nenum tsd305_status\r\ntsd305::read_temperature_and_object_temperature(float *temperature,\r\n                                                float *object_temperature) {\r\n  enum tsd305_status status = tsd305_status_ok;\r\n\r\n  uint8_t adc_ambient_lut_temperature_index = 1;\r\n  uint8_t adc_ambient_lut_adc_index_min = 1;\r\n  uint8_t adc_ambient_lut_adc_index_max = 1;\r\n  int32_t adc_object, adc_ambient;\r\n  int32_t amb_min, amb_max;\r\n  int32_t adc_x1, adc_x2, adc_y1, adc_y2;\r\n  int32_t obj_min1, obj_max1, obj_min2, obj_max2;\r\n  float object_temperature_min, object_temperature_max;\r\n\r\n  if (tsd305_coeff_read == false)\r\n    ASSERT_STATUS(read_eeprom());\r\n\r\n  ASSERT_STATUS(conversion_and_read_adcs((uint32_t *)&adc_object,\r\n                                         (uint32_t *)&adc_ambient));\r\n\r\n  *temperature = (float)adc_ambient / 16777216.0f *\r\n                     ((float)eeprom_coeff.max_ambient_temperature -\r\n                      (float)eeprom_coeff.min_ambient_temperature) +\r\n                 (float)eeprom_coeff.min_ambient_temperature;\r\n\r\n  adc_object = (int64_t)(adc_object - 8388608) *\r\n               eeprom_coeff.adc_calibration_factor / 1000;\r\n\r\n  if (*temperature > get_lut_at(1, 0) &&\r\n      *temperature <= get_lut_at(LUT_AMBIENT_SIZE, 0)) {\r\n    // Look for closest ambient temperature in LUT\r\n    while (*temperature > get_lut_at(adc_ambient_lut_temperature_index, 0) &&\r\n           adc_ambient_lut_temperature_index <= LUT_AMBIENT_SIZE + 1)\r\n      adc_ambient_lut_temperature_index++;\r\n\r\n    // Look for closest ADC value in LUT based on min possible ambient\r\n    // temperature\r\n    while (adc_object > get_lut_at(adc_ambient_lut_temperature_index - 1,\r\n                                   adc_ambient_lut_adc_index_min) &&\r\n           adc_ambient_lut_adc_index_min <= LUT_ADC_SIZE + 1)\r\n      adc_ambient_lut_adc_index_min++;\r\n\r\n    // Look for closest ADC value in LUT based on max possible ambient\r\n    // temperature\r\n    while (adc_object > get_lut_at(adc_ambient_lut_temperature_index,\r\n                                   adc_ambient_lut_adc_index_max) &&\r\n           adc_ambient_lut_adc_index_max <= LUT_ADC_SIZE + 1)\r\n      adc_ambient_lut_adc_index_max++;\r\n\r\n    amb_min = get_lut_at(adc_ambient_lut_temperature_index - 1, 0);\r\n    amb_max = get_lut_at(adc_ambient_lut_temperature_index, 0);\r\n\r\n    adc_x1 = get_lut_at(adc_ambient_lut_temperature_index - 1,\r\n                        adc_ambient_lut_adc_index_min - 1);\r\n    adc_x2 = get_lut_at(adc_ambient_lut_temperature_index - 1,\r\n                        adc_ambient_lut_adc_index_min);\r\n    adc_y1 = get_lut_at(adc_ambient_lut_temperature_index,\r\n                        adc_ambient_lut_adc_index_max - 1);\r\n    adc_y2 = get_lut_at(adc_ambient_lut_temperature_index,\r\n                        adc_ambient_lut_adc_index_max);\r\n\r\n    obj_min1 = get_lut_at(0, adc_ambient_lut_adc_index_min - 1);\r\n    obj_min2 = get_lut_at(0, adc_ambient_lut_adc_index_min);\r\n    obj_max1 = get_lut_at(0, adc_ambient_lut_adc_index_max - 1);\r\n    obj_max2 = get_lut_at(0, adc_ambient_lut_adc_index_max);\r\n\r\n    float object_temperature_min = (float)(adc_object - adc_x1) /\r\n                                       (float)(adc_x2 - adc_x1) *\r\n                                       (float)(obj_min2 - obj_min1) +\r\n                                   obj_min1;\r\n    float object_temperature_max = (float)(adc_object - adc_y1) /\r\n                                       (float)(adc_y2 - adc_y1) *\r\n                                       (float)(obj_max2 - obj_max1) +\r\n                                   obj_max1;\r\n\r\n    *object_temperature =\r\n        (*temperature - amb_min) / (amb_max - amb_min) *\r\n            (object_temperature_max - object_temperature_min) +\r\n        object_temperature_min;\r\n  } else {\r\n    status = tsd305_status_out_of_range;\r\n  }\r\n\r\n  return status;\r\n}\r\n\r\nATMO_TSD305_Status_t ATMO_TSD305_Init(ATMO_DriverInstanceHandle_t i2cDriverInstance)\r\n{\r\n    _ATMO_TSD305_I2CInstance = i2cDriverInstance;\r\n}\r\n\r\nATMO_TSD305_Status_t ATMO_TSD305_GetTemperature(float *temperatureC)\r\n{\r\n\r\n}\r\n"
+              }
+            }
+          },
+          "md5": "858a77be66ce00368f693417527ad4a5"
+        },
+        "tsys01": {
+          "libName": "tsys01",
+          "manufacturer": "TEConnectivity",
+          "description": "Temperature Sensor",
+          "version": "",
+          "type": "Temperature Sensor",
+          "eelVersion": "3",
+          "shoppingCartLinks": {
+            "digikey": {
+              "links": {
+                "info": "https://www.digikey.com/product-detail/en/te-connectivity-measurement-specialties/DPP902S000/223-1786-ND/6685752"
+              },
+              "cartData": {
+                "part": "223-1786-ND",
+                "partid": "6685752",
+                "source": "dkstudio",
+                "qty": "1"
+              }
+            }
+          },
+          "requires": [
+            "embedded",
+            "i2c"
+          ],
+          "elements": [
+            {
+              "name": "TSYS01",
+              "type": "EmbeddedTSYS01",
+              "icon": "EmbeddedTemperature.svg",
+              "defaultAbility": "readTemperature",
+              "defaultTrigger": "temperatureRead",
+              "hidden": false,
+              "abilities": [
+                {
+                  "name": "setup",
+                  "hidden": true,
+                  "triggers": [],
+                  "code": "    ATMO_TSYS01_Init(ATMO_PROPERTY(undefined, i2cInstance), ATMO_PROPERTY(undefined, i2cAddress), ATMO_PROPERTY(undefined, gpioInstance), ATMO_PROPERTY(undefined, weatherShield), ATMO_PROPERTY(undefined, weatherShieldCsA), ATMO_PROPERTY(undefined, weatherShieldCsB), ATMO_PROPERTY(undefined, weatherShieldEn));\r\n    return ATMO_Status_Success;"
+                },
+                {
+                  "name": "readTemperature",
+                  "triggers": [
+                    "temperatureRead"
+                  ],
+                  "code": "    float temperature = 0;\r\n\r\n    if(ATMO_TSYS01_GetTemperature(&temperature) != ATMO_TSYS01_Status_Success)\r\n    {\r\n        return ATMO_Status_Fail;\r\n    }\r\n\r\n    ATMO_CreateValueFloat(out, temperature);\r\n    return ATMO_Status_Success;"
+                }
+              ],
+              "properties": [
+                {
+                  "name": "i2cInstance",
+                  "input": "driverInstance",
+                  "driverType": "i2c"
+                },
+                {
+                  "name": "gpioInstance",
+                  "input": "driverInstance",
+                  "driverType": "gpio"
+                },
+                {
+                  "name": "i2cAddress",
+                  "input": "select",
+                  "inputOptions": [
+                    "0x76",
+                    "0x77"
+                  ],
+                  "value": "0x77"
+                },
+                {
+                  "name": "weatherShield",
+                  "input": "checkbox",
+                  "value": true
+                },
+                {
+                  "name": "weatherShieldCsA",
+                  "input": "number",
+                  "value": 9
+                },
+                {
+                  "name": "weatherShieldCsB",
+                  "input": "number",
+                  "value": 10
+                },
+                {
+                  "name": "weatherShieldEn",
+                  "input": "number",
+                  "value": 11
+                }
+              ],
+              "triggers": [],
+              "variables": [],
+              "language": {
+                "en-US": {
+                  "EmbeddedTSYS01": "TSYS01 Temperature",
+                  "i2cInstance": "I2C Driver Instance",
+                  "gpioInstance": "GPIO Driver Instance",
+                  "i2cAddress": "I2C Address",
+                  "readTemperature": "Read Temperature (°C)",
+                  "temperatureRead": "Temperature Read",
+                  "weatherShield": "TE Arduino Weather Shield",
+                  "weatherShieldCsA": "Weather Shield CSA Pin",
+                  "weatherShieldCsB": "Weather Shield CSB Pin",
+                  "weatherShieldEn": "Weather Shield EN Pin"
+                }
+              }
+            }
+          ],
+          "files": {
+            "common": {
+              "headers": {
+                "tsys01.h": "#ifndef _ATMO_TSYS01_H_\r\n#define _ATMO_TSYS01_H_\r\n\r\n#include \"../atmo/core.h\"\r\n#include \"../app_src/atmosphere_platform.h\"\r\n\r\ntypedef enum {\r\n    ATMO_TSYS01_Status_Success = 0,\r\n    ATMO_TSYS01_Status_Fail\r\n} ATMO_TSYS01_Status_t;\r\n\r\nATMO_TSYS01_Status_t ATMO_TSYS01_Init(ATMO_DriverInstanceHandle_t i2cDriverInstance, uint8_t i2cAddress, ATMO_DriverInstanceHandle_t gpioInstance, bool weatherShieldEnable, ATMO_GPIO_Device_Pin_t weatherShieldCsA, ATMO_GPIO_Device_Pin_t weatherShieldCsB, ATMO_GPIO_Device_Pin_t weatherShieldEn);\r\nATMO_TSYS01_Status_t ATMO_TSYS01_GetTemperature(float *temperatureC);\r\n\r\n#endif"
+              },
+              "objects": {
+                "tsys01.c": "#include \"tsys01.h\"\r\n\r\n#include \"../i2c/i2c.h\"\r\n#include \"../gpio/gpio.h\"\r\n#include \"../app_src/atmosphere_platform.h\"\r\n\r\nstatic ATMO_DriverInstanceHandle_t _ATMO_TSYS01_I2CInstance = 0;\r\nstatic uint8_t _ATMO_TSYS01_I2CAddress = 0;\r\n\r\nstatic ATMO_DriverInstanceHandle_t _ATMO_TSYS01_GpioInstance = 0;\r\n\r\nstatic bool _ATMO_TSYS01_WeatherShieldEnable = false;\r\nstatic ATMO_GPIO_Device_Pin_t _ATMO_TSYS01_weatherShieldCsA = 0;\r\nstatic ATMO_GPIO_Device_Pin_t _ATMO_TSYS01_weatherShieldCsB = 0;\r\nstatic ATMO_GPIO_Device_Pin_t _ATMO_TSYS01_weatherShieldEn = 0;\r\n\r\n\r\n// TSYS01 device commands\r\n#define TSYS01_RESET_COMMAND 0x1E\r\n#define TSYS01_START_ADC_CONVERSION 0x48\r\n#define TSYS01_READ_ADC_TEMPERATURE 0x00\r\n#define PROM_ADDRESS_READ_ADDRESS_0 0xA0\r\n#define PROM_ADDRESS_READ_ADDRESS_1 0xA2\r\n#define PROM_ADDRESS_READ_ADDRESS_2 0xA4\r\n#define PROM_ADDRESS_READ_ADDRESS_3 0xA6\r\n#define PROM_ADDRESS_READ_ADDRESS_4 0xA8\r\n#define PROM_ADDRESS_READ_ADDRESS_5 0xAA\r\n#define PROM_ADDRESS_READ_ADDRESS_6 0xAC\r\n#define PROM_ADDRESS_READ_ADDRESS_7 0xAE\r\n#define PROM_ELEMENTS_NUMBER 8\r\n\r\n#define TSYS01_CONVERSION_TIME 10\r\n\r\n#define PROM_ELEMENTS_NUMBER 8\r\n\r\n#define COEFF_MUL_0 (float)(-1.5)\r\n#define COEFF_MUL_1 (float)(1)\r\n#define COEFF_MUL_2 (float)(-2)\r\n#define COEFF_MUL_3 (float)(4)\r\n#define COEFF_MUL_4 (float)(-2)\r\n\r\nstatic const float tsys01_coeff_mul[5] = {COEFF_MUL_0, COEFF_MUL_1, COEFF_MUL_2, COEFF_MUL_3, COEFF_MUL_4};\r\nstatic uint16_t tsys01_eeprom_coeff[PROM_ELEMENTS_NUMBER];\r\n\r\nbool tsys01_coeff_read = false;\r\n\r\nstatic void _ATMO_TSYS01_EnableChipWeatherShield()\r\n{\r\n\tif(_ATMO_TSYS01_WeatherShieldEnable)\r\n\t{\r\n\t\tATMO_GPIO_SetPinState(_ATMO_TSYS01_GpioInstance, _ATMO_TSYS01_weatherShieldCsA, ATMO_GPIO_PinState_Low);\r\n\t\tATMO_GPIO_SetPinState(_ATMO_TSYS01_GpioInstance, _ATMO_TSYS01_weatherShieldCsB, ATMO_GPIO_PinState_High);\r\n\t\tATMO_GPIO_SetPinState(_ATMO_TSYS01_GpioInstance, _ATMO_TSYS01_weatherShieldEn, ATMO_GPIO_PinState_Low);\r\n\t}\r\n}\r\n\r\n\r\n/**\r\n * \\brief Reads the TSYS01 EEPROM coefficient stored at address provided.\r\n *\r\n * \\param[in] uint8_t : Address of coefficient in EEPROM\r\n * \\param[out] uint16_t* : Value read in EEPROM\r\n *\r\n * \\return TSYS01_status : status of TSYS01\r\n *       - TSYS01_status_ok : I2C transfer completed successfully\r\n *       - TSYS01_status_i2c_transfer_error : Problem with i2c transfer\r\n *       - TSYS01_status_busy : Sensor is busy\r\n *       - TSYS01_status_memory_error : Sensor EEPROM memory error\r\n */\r\nstatic bool _ATMO_TSYS01_ReadEEPROMCoeff( uint8_t address, uint16_t *coeff )\r\n{\r\n\tuint8_t buffer[2];\r\n\tuint8_t i;\r\n\r\n\tATMO_I2C_Status_t i2cStatus = ATMO_I2C_MasterRead( _ATMO_TSYS01_I2CInstance, _ATMO_TSYS01_I2CAddress, &address, 1, buffer, 2, 1000 );\r\n\r\n\tif ( i2cStatus != ATMO_I2C_Status_Success )\r\n\t{\r\n\t\treturn false;\r\n\t}\r\n\r\n\t*coeff = ( buffer[0] << 8 ) | buffer[1];\r\n\r\n\treturn true;\r\n}\r\n\r\n\r\n/**\r\n * \\brief Reads the TSYS01 EEPROM coefficients to store them for computation.\r\n *\r\n * \\return TSYS01_status : status of TSYS01\r\n *       - TSYS01_status_ok : I2C transfer completed successfully\r\n *       - TSYS01_status_i2c_transfer_error : Problem with i2c transfer\r\n *       - TSYS01_status_no_i2c_acknowledge : I2C did not acknowledge\r\n *       - TSYS01_status_busy : Sensor is busy\r\n *       - TSYS01_status_memory_error : Sensor EEPROM memory error\r\n */\r\nstatic bool _ATMO_TSYS01_ReadEEPROM( void )\r\n{\r\n\t  // Read all coefficients from EEPROM\r\n\tfor (int i = 0; i < PROM_ELEMENTS_NUMBER; i++) \r\n\t{\r\n\t\tif(!_ATMO_TSYS01_ReadEEPROMCoeff(PROM_ADDRESS_READ_ADDRESS_0 + i * 2,\r\n\t\t\t\t\t\t\t\t\ttsys01_eeprom_coeff + i))\r\n\t\t{\r\n\t\t\treturn false;\r\n\t\t}\r\n\t}\r\n\r\n\ttsys01_coeff_read = true;\r\n\r\n\treturn true;\r\n}\r\n\r\n\r\n/**\r\n * \\brief Triggers conversion and read ADC value\r\n *\r\n * \\param[in] uint8_t : Command used for conversion (will determine Temperature\r\n * vs Pressure and osr)\r\n * \\param[out] uint32_t* : ADC value.\r\n *\r\n * \\return TSYS01_status : status of TSYS01\r\n *       - TSYS01_status_ok : I2C transfer completed successfully\r\n *       - TSYS01_status_i2c_transfer_error : Problem with i2c transfer\r\n *       - TSYS01_status_no_i2c_acknowledge : I2C did not acknowledge\r\n *       - TSYS01_status_busy : Sensor is busy\r\n *       - TSYS01_status_memory_error : Sensor EEPROM memory error\r\n */\r\nstatic bool _ATMO_TSYS01_ConvertAndReadAdc( uint32_t *adc )\r\n{\r\n\tuint8_t i2c_status;\r\n\tuint8_t buffer[3];\r\n\tuint8_t status_byte = 0;\r\n\tuint8_t i;\r\n\r\n\tuint8_t cmdByte = TSYS01_START_ADC_CONVERSION;\r\n\tATMO_I2C_Status_t i2cStatus = ATMO_I2C_MasterWrite(_ATMO_TSYS01_I2CInstance, _ATMO_TSYS01_I2CAddress, NULL, 0, &cmdByte, 1, 1000);\r\n\r\n\tif(i2cStatus != ATMO_I2C_Status_Success)\r\n\t{\r\n\t\treturn false;\r\n\t}\r\n\r\n\tATMO_PLATFORM_DelayMilliseconds(TSYS01_CONVERSION_TIME);\r\n\r\n\tcmdByte = TSYS01_READ_ADC_TEMPERATURE;\r\n\ti2cStatus = ATMO_I2C_MasterRead(_ATMO_TSYS01_I2CInstance, _ATMO_TSYS01_I2CAddress, &cmdByte, 1, buffer, 3, 1000);\r\n\r\n\tif(i2cStatus != ATMO_I2C_Status_Success)\r\n\t{\r\n\t\treturn false;\r\n\t}\r\n\r\n\t*adc = ((uint32_t)buffer[0] << 16) | ((uint32_t)buffer[1] << 8) |\r\n         (uint32_t)buffer[2];\r\n\r\n\treturn true;\r\n}\r\n\r\n/**\r\n * \\brief Reads the temperature and pressure ADC value and compute the\r\n * compensated values.\r\n *\r\n * \\param[out] float* : Celsius Degree temperature value\r\n * \\param[out] float* : mbar pressure value\r\n *\r\n * \\return TSYS01_status : status of TSYS01\r\n *       - TSYS01_status_ok : I2C transfer completed successfully\r\n *       - TSYS01_status_i2c_transfer_error : Problem with i2c transfer\r\n *       - TSYS01_status_no_i2c_acknowledge : I2C did not acknowledge\r\n *       - TSYS01_status_busy : Sensor is busy\r\n *       - TSYS01_status_memory_error : Sensor EEPROM memory error\r\n *       - TSYS01_status_out_of_range : Sensor is out of range\r\n */\r\nstatic bool _ATMO_TSYS01_ReadTemperature( float *temperature )\r\n{\r\n\t_ATMO_TSYS01_EnableChipWeatherShield();\r\n\r\n\tif ( tsys01_coeff_read == false )\r\n\t{\r\n\t\tif(!_ATMO_TSYS01_ReadEEPROM())\r\n\t\t{\r\n\t\t\treturn false;\r\n\t\t}\r\n\t}\r\n\r\n\tuint32_t adc;\r\n\tfloat temp = 0;\r\n\tif( !_ATMO_TSYS01_ConvertAndReadAdc( ( uint32_t * )&adc) )\r\n\t{\r\n\t\treturn false;\r\n\t}\r\n\tadc /= 256;\r\n\r\n\tfor (int i = 4; i > 0; i--) {\r\n\t\ttemp += tsys01_coeff_mul[i] *\r\n\t\t\t\ttsys01_eeprom_coeff[1 + (4 - i)]; // tsys01_eeprom_coeff[1+(4-i)] equiv. ki\r\n\t\ttemp *= (float)adc / 100000;\r\n\t}\r\n\ttemp *= 10;\r\n\ttemp += tsys01_coeff_mul[0] * tsys01_eeprom_coeff[5];\r\n\ttemp /= 100;\r\n\r\n\t*temperature = temp;\r\n\treturn true;\r\n}\r\n\r\nATMO_TSYS01_Status_t ATMO_TSYS01_Init( ATMO_DriverInstanceHandle_t i2cDriverInstance, uint8_t i2cAddress, ATMO_DriverInstanceHandle_t gpioInstance, bool weatherShieldEnable, ATMO_GPIO_Device_Pin_t weatherShieldCsA, ATMO_GPIO_Device_Pin_t weatherShieldCsB, ATMO_GPIO_Device_Pin_t weatherShieldEn )\r\n{\r\n\t_ATMO_TSYS01_I2CAddress = i2cAddress;\r\n\t_ATMO_TSYS01_I2CInstance = i2cDriverInstance;\r\n\t_ATMO_TSYS01_GpioInstance = gpioInstance;\r\n\t_ATMO_TSYS01_WeatherShieldEnable = weatherShieldEnable;\r\n\t_ATMO_TSYS01_weatherShieldCsA = weatherShieldCsA;\r\n\t_ATMO_TSYS01_weatherShieldCsB = weatherShieldCsB;\r\n\t_ATMO_TSYS01_weatherShieldEn = weatherShieldEn;\r\n\r\n\tif( _ATMO_TSYS01_WeatherShieldEnable )\r\n\t{\r\n\t\tATMO_GPIO_Config_t gpio;\r\n\t\tgpio.pinMode = ATMO_GPIO_PinMode_Output_PushPull;\r\n\t\tgpio.initialState = ATMO_GPIO_PinState_Low;\r\n\t\tATMO_GPIO_SetPinConfiguration(_ATMO_TSYS01_GpioInstance, _ATMO_TSYS01_weatherShieldCsA, &gpio);\r\n\t\tATMO_GPIO_SetPinConfiguration(_ATMO_TSYS01_GpioInstance, _ATMO_TSYS01_weatherShieldCsB, &gpio);\r\n\t\tATMO_GPIO_SetPinConfiguration(_ATMO_TSYS01_GpioInstance, _ATMO_TSYS01_weatherShieldEn, &gpio);\r\n\t}\r\n\treturn ATMO_TSYS01_Status_Success;\r\n}\r\n\r\nATMO_TSYS01_Status_t ATMO_TSYS01_GetTemperature( float *temperatureC )\r\n{\r\n\treturn _ATMO_TSYS01_ReadTemperature(temperatureC) == true ? ATMO_TSYS01_Status_Success : ATMO_TSYS01_Status_Fail;\r\n}\r\n"
+              }
+            }
+          },
+          "md5": "f6ce761ad46ebc80c293b7cdde3f0101"
+        },
+        "xbeecat1": {
+          "libName": "xbeecat1",
+          "manufacturer": "Digi",
+          "description": "XBee Cellular LTE CAT1 Modem",
+          "type": "Cellular",
+          "icon": "",
+          "image": "",
+          "version": "",
+          "eelVersion": "3",
+          "shoppingCartLinks": {
+            "digikey": {
+              "links": {
+                "info": "https://www.digikey.com/short/pj30c5"
+              },
+              "cartData": {
+                "part": "602-1976-ND",
+                "source": "dkstudio",
+                "qty": "1"
+              }
+            }
+          },
+          "requires": [
+            "embedded",
+            "uart",
+            "uptime"
+          ],
+          "elements": [
+            {
+              "name": "XbeeCat1Lte",
+              "type": "EmbeddedXbeeLteCat1",
+              "icon": "EmbeddedCellularConnection.svg",
+              "implements": [
+                "embeddedCloud",
+                "cellular"
+              ],
+              "helpPageHref": "https://developer.atmosphereiot.com/documents/elements/digixbeeltecat1.html",
+              "defaultAbility": "sendSms",
+              "defaultTrigger": "smsSent",
+              "hidden": false,
+              "abilities": [
+                {
+                  "name": "setup",
+                  "hidden": true,
+                  "code": "    XBEE_CAT1_LTE_Config_t config;\n    config.uartInstance = ATMO_PROPERTY(undefined, uartInstance);\n    config.driverType.type = ATMO_DRIVERTYPE_UART;\n    config.gpioInstance = ATMO_PROPERTY(undefined, gpioInstance);\n    config.resetPin = ATMO_PROPERTY(undefined, resetPin);\n    strncpy(config.phoneNumber, ATMO_PROPERTY(undefined, phoneNumber), XBEE_CAT1_LTE_MAX_PHONE_LEN);\n\n    if(!XBEE_CAT1_LTE_Init(&config, &ATMO_INSTANCE(undefined, CELLULAR), &ATMO_INSTANCE(undefined, EMBEDDEDCLOUD)))\n    {\n        return ATMO_Status_Fail;\n    }\n\n    return ATMO_Status_Success;"
+                },
+                {
+                  "name": "sendSms",
+                  "triggers": [
+                    "smsSent"
+                  ],
+                  "code": "    return XBEE_CAT1_LTE_SendSMS(in) ? ATMO_Status_Success : ATMO_Status_Fail;"
+                }
+              ],
+              "properties": [
+                {
+                  "name": "uartInstance",
+                  "input": "driverInstance",
+                  "driverType": "uart"
+                },
+                {
+                  "name": "gpioInstance",
+                  "input": "driverInstance",
+                  "driverType": "gpio"
+                },
+                {
+                  "name": "resetPin",
+                  "input": "number",
+                  "value": "ATMO_GPIO_NO_PIN"
+                },
+                {
+                  "name": "phoneNumber",
+                  "input": "text",
+                  "embeddedConversion": "string",
+                  "value": ""
+                }
+              ],
+              "triggers": [],
+              "variables": [],
+              "language": {
+                "en-US": {
+                  "EmbeddedXbeeLteCat1": "XBee Cellular LTE CAT1",
+                  "uartInstance": "UART Driver Instance",
+                  "resetPin": "Reset Pin",
+                  "gpioInstance": "GPIO Driver Instance",
+                  "phoneNumber": "Destination Phone Number",
+                  "sendSms": "Send SMS",
+                  "smsSent": "SMS Sent"
+                }
+              }
+            }
+          ],
+          "files": {
+            "common": {
+              "headers": {
+                "xbeecat1lte.h": "#ifndef __XBEE_CAT1_LTE_H_\n#define __XBEE_CAT1_LTE_H_\n\n#include \"../app_src/atmosphere_platform.h\"\n#include \"../tcpclient/tcpclient.h\"\n#include \"../cellular/cellular.h\"\n#include \"../http/http.h\"\n#include \"../atmo/core.h\"\n\n#ifdef __cplusplus\n\textern \"C\"{\n#endif\n\n#define XBEE_CAT1_LTE_MAX_PHONE_LEN 20\n\ntypedef struct {\n    ATMO_DriverInstanceHandle_t uartInstance;\n    ATMO_DriverInstanceHandle_t gpioInstance;\n    ATMO_GPIO_Device_Pin_t resetPin;\n    ATMO_DriverInstanceHandle_t spiInstance; // FUTURE\n    ATMO_CORE_DeviceHandle_t driverType; // FUTURE\n    char phoneNumber[XBEE_CAT1_LTE_MAX_PHONE_LEN + 1];\n} XBEE_CAT1_LTE_Config_t;\n\nATMO_BOOL_t XBEE_CAT1_LTE_Init(XBEE_CAT1_LTE_Config_t *config, ATMO_DriverInstanceHandle_t *cellularInstance, ATMO_DriverInstanceHandle_t *cloudInstance);\nATMO_BOOL_t XBEE_CAT1_LTE_SendSMS(ATMO_Value_t *data);\n\nATMO_Status_t XBEE_CAT1_LTE_TCP_CLIENT_AddDriverInstance(ATMO_DriverInstanceHandle_t *instanceNumber);\nATMO_TCP_CLIENT_Status_t XBEE_CAT1_LTE_TCP_CLIENT_Init(ATMO_DriverInstanceData_t *instance);\nATMO_TCP_CLIENT_Status_t XBEE_CAT1_LTE_TCP_CLIENT_DeInit(ATMO_DriverInstanceData_t *instance);\nATMO_TCP_CLIENT_Status_t XBEE_CAT1_LTE_TCP_CLIENT_SetConfiguration(ATMO_DriverInstanceData_t *instance, const ATMO_TCP_CLIENT_Config_t *config);\nATMO_TCP_CLIENT_Status_t XBEE_CAT1_LTE_TCP_CLIENT_Connect(ATMO_DriverInstanceData_t *instance, const char *host, unsigned int port, ATMO_BOOL_t useSSL);\nATMO_TCP_CLIENT_Status_t XBEE_CAT1_LTE_TCP_CLIENT_Disconnect(ATMO_DriverInstanceData_t *instance);\nATMO_TCP_CLIENT_Status_t XBEE_CAT1_LTE_TCP_CLIENT_GetConnectionStatus(ATMO_DriverInstanceData_t *instance, ATMO_TCP_CLIENT_ConnectionStatus_t *status);\nATMO_TCP_CLIENT_Status_t XBEE_CAT1_LTE_TCP_CLIENT_WriteBytes(ATMO_DriverInstanceData_t *instance, uint8_t *data, unsigned int dataLen);\nATMO_TCP_CLIENT_Status_t XBEE_CAT1_LTE_TCP_CLIENT_SetReceiveCallback(ATMO_DriverInstanceData_t *instance, ATMO_Callback_t cb);\nATMO_TCP_CLIENT_Status_t XBEE_CAT1_LTE_TCP_CLIENT_GetNumAvailableBytes(ATMO_DriverInstanceData_t *instance, uint32_t *numBytes, uint8_t **bytePtr);\n\nATMO_Status_t XBEE_CAT1_LTE_CELLULAR_AddDriverInstance(ATMO_DriverInstanceHandle_t *instanceNumber);\nATMO_CELLULAR_Status_t XBEE_CAT1_LTE_CELLULAR_Init(ATMO_DriverInstanceData_t *instance);\nATMO_CELLULAR_Status_t XBEE_CAT1_LTE_CELLULAR_DeInit(ATMO_DriverInstanceData_t *instance);\nATMO_CELLULAR_Status_t XBEE_CAT1_LTE_CELLULAR_GetConnectionStatus(ATMO_DriverInstanceData_t *instance, ATMO_CELLULAR_ConnectionStatus_t *status);\n\n#ifdef __cplusplus\n\t}\n#endif\n\n#endif"
+              },
+              "objects": {
+                "xbeecat1lte.c": "#include \"xbeecat1lte.h\"\n#include \"../app_src/atmosphere_platform.h\"\n\nstatic XBEE_CAT1_LTE_Config_t _XBEE_CAT1_LTE_Config;\n\n/* Timeout for general AT commands */\n#define XBEE_CAT1_TIMEOUT_MS 2000\n\n/* Timeout for HTTP requests */\n#define XBEE_CAT1_HTTP_TIMEOUT_MS 15000\n\n/* Buffer for HTTP responses */\n#define XBEE_CAT1_HTTP_BUF_SIZE 600\n#define XBEE_CAT1_HTTP_RESP_BUF_SIZE 256\n\n/* Number of times to retry entering command mode */\n#define XBEE_CAT1_CMD_MODE_NUM_RETRIES 3\n\nconst ATMO_TCP_CLIENT_DriverInstance_t xbeeTcpClientDriverInstance =\n    {\n        XBEE_CAT1_LTE_TCP_CLIENT_Init,\n        XBEE_CAT1_LTE_TCP_CLIENT_DeInit,\n        XBEE_CAT1_LTE_TCP_CLIENT_SetConfiguration,\n        XBEE_CAT1_LTE_TCP_CLIENT_Connect,\n        XBEE_CAT1_LTE_TCP_CLIENT_Disconnect,\n        XBEE_CAT1_LTE_TCP_CLIENT_GetConnectionStatus,\n        XBEE_CAT1_LTE_TCP_CLIENT_WriteBytes,\n        XBEE_CAT1_LTE_TCP_CLIENT_SetReceiveCallback,\n        XBEE_CAT1_LTE_TCP_CLIENT_GetNumAvailableBytes\n    };\n\nconst ATMO_CELLULAR_DriverInstance_t xbeeCellularDriverInstance =\n    {\n        XBEE_CAT1_LTE_CELLULAR_Init,\n        XBEE_CAT1_LTE_CELLULAR_DeInit,\n        XBEE_CAT1_LTE_CELLULAR_GetConnectionStatus\n    };\n\n/* Callback for TCP Client RX Data. Registered by HTTP driver */\nstatic ATMO_Callback_t _XBEE_CAT1_TCP_CLIENT_RxCB = NULL;\n\nstatic uint32_t _XBEE_CAT1_TCP_CLIENT_NumBytesAvailable = 0;\nstatic ATMO_DriverInstanceHandle_t _XBEE_CAT1_HTTPInstance = 0;\n\n/* Response buffers */\nstatic char _XBEE_CAT1_RespBuf[XBEE_CAT1_HTTP_BUF_SIZE];\nstatic char _XBEE_CAT1_HttpPacketBuf[ATMO_HTTP_DEFAULT_PACKETBUF_SIZE];\n\n/* Global to indicate if the modem is busy with a command. This is to avoid sending a command while it's already sending a command. */\nstatic ATMO_BOOL_t _XBEE_CAT1_Busy = false;\n\nstatic ATMO_TCP_CLIENT_ConnectionStatus_t _XBEE_CAT1_ConnectionStatus = ATMO_TCP_CLIENT_Disconnected;\n\nstatic uint32_t _XBEE_CAT1_GuardTimeMs = 1000;\nstatic ATMO_BOOL_t _XBEE_CAT1_WaitingForResponse = false;\n\n/**\n * @brief Private functions\n * \n */\nstatic void _XBEE_CAT1_LTE_Flush();\nstatic ATMO_TCP_CLIENT_Status_t _XBEE_CAT1_LTE_TCP_CLIENT_GetConnectionStatus(ATMO_DriverInstanceData_t *instance, ATMO_TCP_CLIENT_ConnectionStatus_t *status);\nstatic ATMO_BOOL_t XBEE_CAT1_LTE_EnterCommandMode();\nstatic ATMO_BOOL_t XBEE_CAT1_LTE_SendAtCommand(const char *cmd, const char *params);\nstatic ATMO_BOOL_t XBEE_CAT1_LTE_ExitCommandMode();\n\n/* Flush the buffer. This currently has some issues with Arduino */\nstatic void _XBEE_CAT1_LTE_Flush()\n{\n    ATMO_UART_FlushRx(_XBEE_CAT1_LTE_Config.uartInstance);\n}\n\nstatic void _XBEE_CAT1_LTE_CheckForResponse(void *data)\n{\n    static ATMO_BOOL_t lastWaitingForResponse = false;\n    static uint64_t startTime = 0;\n    static uint64_t timeSinceStart = 0; // Overall timeout to jump out in case of error\n    static uint64_t lastNewByteTime = 0;\n    static uint32_t lastNBytesAvailable = 0;\n\n    if (!_XBEE_CAT1_WaitingForResponse)\n    {\n        return;\n    }\n\n    // Transitioned into waiting for resp\n    if (_XBEE_CAT1_WaitingForResponse && !lastWaitingForResponse)\n    {\n        startTime = ATMO_PLATFORM_UptimeMs();\n        timeSinceStart = 0;\n    }\n\n    // No resp received in time\n    if (timeSinceStart > XBEE_CAT1_HTTP_TIMEOUT_MS)\n    {\n        _XBEE_CAT1_WaitingForResponse = false;\n        _XBEE_CAT1_Busy = false;\n        return;\n    }\n\n    // After the first byte is received, it should be a constant stream of data.\n    // If no bytes have been received for a few loops after the initial byte has been received. The transfer is done.\n    ATMO_UART_CheckForData(_XBEE_CAT1_LTE_Config.uartInstance);\n    timeSinceStart = ATMO_PLATFORM_UptimeMs() - startTime;\n\n    unsigned int nBytesAvailable = 0;\n    ATMO_UART_NumRxBytesAvailable(_XBEE_CAT1_LTE_Config.uartInstance, &nBytesAvailable);\n\n    if (nBytesAvailable > 0 && (nBytesAvailable != lastNBytesAvailable))\n    {\n        lastNewByteTime = ATMO_PLATFORM_UptimeMs();\n    }\n\n    ATMO_BOOL_t respReceived = false;\n\n    // It's been awhile since a new byte has been received\n    if (nBytesAvailable > 0 && (nBytesAvailable == lastNBytesAvailable))\n    {\n        if (ATMO_PLATFORM_UptimeMs() - lastNewByteTime > 1000)\n        {\n            respReceived = true;\n        }\n    }\n\n    lastNBytesAvailable = nBytesAvailable;\n\n    if (respReceived)\n    {\n//        ATMO_PLATFORM_DebugPrint(\"RX Complete: %s\\r\\n\", _XBEE_CAT1_RespBuf);\n\n        // Only care about the 1st line and data after the headers\n        char *firstLineEnd = strchr((char *)_XBEE_CAT1_RespBuf, '\\r');\n\n        if (firstLineEnd == NULL)\n        {\n            return ATMO_TCP_CLIENT_Status_Fail;\n        }\n\n        *firstLineEnd = 0;\n        strcpy(_XBEE_CAT1_HttpPacketBuf, _XBEE_CAT1_RespBuf);\n\n        // Find data\n        firstLineEnd++;\n\n        char *dataStart = strstr(firstLineEnd, \"\\r\\n\\r\\n\");\n\n        if (dataStart == NULL)\n        {\n            return ATMO_TCP_CLIENT_Status_Fail;\n        }\n\n        strcat(_XBEE_CAT1_HttpPacketBuf, dataStart);\n\n//        ATMO_PLATFORM_DebugPrint(\"Resp Buffer: %s\\r\\n\", _XBEE_CAT1_HttpPacketBuf);\n        _XBEE_CAT1_TCP_CLIENT_NumBytesAvailable = strlen(_XBEE_CAT1_HttpPacketBuf) + 1;\n\n        if (_XBEE_CAT1_TCP_CLIENT_RxCB != NULL)\n        {\n            ATMO_AddCallbackExecute(_XBEE_CAT1_TCP_CLIENT_RxCB, NULL);\n        }\n\n        _XBEE_CAT1_Busy = false;\n        _XBEE_CAT1_WaitingForResponse = false;\n    }\n\n    lastWaitingForResponse = _XBEE_CAT1_WaitingForResponse;\n}\n\nstatic ATMO_TCP_CLIENT_Status_t _XBEE_CAT1_LTE_TCP_CLIENT_GetConnectionStatus(ATMO_DriverInstanceData_t *instance, ATMO_TCP_CLIENT_ConnectionStatus_t *status)\n{\n    // Return \"disconnected\" if currently busy\n    if (_XBEE_CAT1_Busy == true)\n    {\n        *status = ATMO_TCP_CLIENT_Disconnected;\n        return ATMO_TCP_CLIENT_Status_Fail;\n    }\n\n    _XBEE_CAT1_Busy = true;\n\n    if (!XBEE_CAT1_LTE_EnterCommandMode())\n    {\n        ATMO_PLATFORM_DebugPrint(\"Failed to enter command mode\\r\\n\");\n        _XBEE_CAT1_Busy = false;\n        *status = ATMO_TCP_CLIENT_Disconnected;\n        return ATMO_TCP_CLIENT_Status_Fail;\n    }\n\n    // Connected to the internet?\n    if (!XBEE_CAT1_LTE_SendAtCommand(\"ATAI\", NULL))\n    {\n        _XBEE_CAT1_Busy = false;\n        *status = ATMO_TCP_CLIENT_Error;\n        return ATMO_TCP_CLIENT_Status_Fail;\n    }\n\n    uint32_t statusInt = strtoul(_XBEE_CAT1_RespBuf, NULL, 16);\n\n    if (!XBEE_CAT1_LTE_ExitCommandMode())\n    {\n        _XBEE_CAT1_Busy = false;\n        return ATMO_TCP_CLIENT_Status_Fail;\n    }\n\n    if (statusInt == 0x0)\n    {\n        *status = ATMO_TCP_CLIENT_Connected;\n    }\n    else\n    {\n        *status = ATMO_TCP_CLIENT_Disconnected;\n    }\n\n    _XBEE_CAT1_ConnectionStatus = *status;\n\n    _XBEE_CAT1_Busy = false;\n    return ATMO_TCP_CLIENT_Status_Success;\n}\n\nstatic ATMO_BOOL_t XBEE_CAT1_LTE_EnterCommandMode()\n{\n    for (uint32_t i = 0; i < XBEE_CAT1_CMD_MODE_NUM_RETRIES; i++)\n    {\n        _XBEE_CAT1_LTE_Flush();\n\n        // There must be at least 1 second preceding entering command mode according to the spec\n        ATMO_PLATFORM_DelayMilliseconds(_XBEE_CAT1_GuardTimeMs);\n\n        ATMO_BOOL_t responseReceived = false;\n        uint32_t nBytesSent = 0;\n        ATMO_UART_WriteBlocking(_XBEE_CAT1_LTE_Config.uartInstance, \"+++\", strlen(\"+++\"), &nBytesSent, 1000);\n\n        uint64_t startTime = ATMO_PLATFORM_UptimeMs();\n        uint64_t currentTime = 0;\n        unsigned int nBytesAvailable = 0;\n\n        // Wait for either a response or the timeout\n        while (!responseReceived && (currentTime < XBEE_CAT1_TIMEOUT_MS))\n        {\n            // Keep the system moving\n            ATMO_UART_CheckForData(_XBEE_CAT1_LTE_Config.uartInstance);\n            currentTime = ATMO_PLATFORM_UptimeMs() - startTime;\n\n            // Since the UART driver is using our RX buffer, it will just be filled by the UART driver\n            // So, no data copying\n            ATMO_UART_NumRxBytesAvailable(_XBEE_CAT1_LTE_Config.uartInstance, &nBytesAvailable);\n\n            // Every response in command mode will end with a single \\r\n            if (nBytesAvailable > 0)\n            {\n                if (strcmp(_XBEE_CAT1_RespBuf, \"OK\\r\") == 0)\n                {\n                    return true;\n                }\n            }\n        }\n    }\n    return false;\n}\n\nstatic ATMO_BOOL_t XBEE_CAT1_LTE_SendAtCommand(const char *cmd, const char *params)\n{\n    _XBEE_CAT1_LTE_Flush();\n    uint32_t tmp = 0;\n    ATMO_BOOL_t responseReceived = false;\n    uint32_t cmdLen = strlen(cmd);\n\n    ATMO_UART_WriteBlocking(_XBEE_CAT1_LTE_Config.uartInstance, cmd, strlen(cmd), &tmp, 1000);\n\n    // Write AT command parameters if there are any\n    if (params != NULL)\n    {\n        ATMO_UART_WriteBlocking(_XBEE_CAT1_LTE_Config.uartInstance, \" \", 1, &tmp, 1000);\n        ATMO_UART_WriteBlocking(_XBEE_CAT1_LTE_Config.uartInstance, params, strlen(params), &tmp, 1000);\n    }\n\n    ATMO_UART_WriteBlocking(_XBEE_CAT1_LTE_Config.uartInstance, \"\\r\", 1, &tmp, 1000);\n\n    uint32_t currentTime = 0;\n    uint32_t startTime = ATMO_PLATFORM_UptimeMs();\n    unsigned int nBytesAvailable = 0;\n\n    // Wait for either a response or the timeout\n    while (!responseReceived && (currentTime < XBEE_CAT1_TIMEOUT_MS))\n    {\n        ATMO_UART_CheckForData(_XBEE_CAT1_LTE_Config.uartInstance);\n        currentTime = ATMO_PLATFORM_UptimeMs() - startTime;\n        ATMO_UART_NumRxBytesAvailable(_XBEE_CAT1_LTE_Config.uartInstance, &nBytesAvailable);\n\n        if (nBytesAvailable > 0)\n        {\n            if (_XBEE_CAT1_RespBuf[nBytesAvailable - 1] == '\\r')\n            {\n                responseReceived = true;\n            }\n        }\n    }\n\n    if (!responseReceived)\n    {\n        return false;\n    }\n\n    if (params != NULL)\n    {\n        // Should have received an OK back\n        if (strcmp(_XBEE_CAT1_RespBuf, \"OK\\r\") != 0)\n        {\n            return false;\n        }\n    }\n\n    return true;\n}\n\nstatic ATMO_BOOL_t XBEE_CAT1_LTE_ExitCommandMode()\n{\n    return XBEE_CAT1_LTE_SendAtCommand(\"ATCN\", NULL);\n}\n\nATMO_BOOL_t XBEE_CAT1_LTE_AutoBaud()\n{\n    ATMO_UART_BaudRate_t baudRates[] = {ATMO_UART_BaudRate_9600, ATMO_UART_BaudRate_2400, ATMO_UART_BaudRate_1200, ATMO_UART_BaudRate_4800, ATMO_UART_BaudRate_19200,\n                                        ATMO_UART_BaudRate_38400, ATMO_UART_BaudRate_57600, ATMO_UART_BaudRate_115200, ATMO_UART_BaudRate_230400, ATMO_UART_BaudRate_460800, ATMO_UART_BaudRate_921600};\n    unsigned int currentBaudIndex = 0;\n\n    ATMO_BOOL_t baudFound = false;\n\n    while (!baudFound && baudRates[currentBaudIndex] != ATMO_UART_BaudRate_921600)\n    {\n        ATMO_PLATFORM_DebugPrint(\"Trying baud: %lu\\r\\n\", baudRates[currentBaudIndex]);\n        ATMO_UART_Peripheral_t uartConfig;\n        ATMO_UART_GetDefaultConfig(&uartConfig);\n        uartConfig.baudRate = baudRates[currentBaudIndex];\n        uartConfig.rxBuffer = false;\n        uartConfig.customBuffer = (uint8_t *)_XBEE_CAT1_RespBuf;\n        uartConfig.customBufferSize = XBEE_CAT1_HTTP_BUF_SIZE * sizeof(char);\n        if(ATMO_UART_SetConfiguration(_XBEE_CAT1_LTE_Config.uartInstance, &uartConfig) != ATMO_UART_Status_Success)\n        {\n            // Try the next baud\n            currentBaudIndex++;\n            continue;\n        }\n\n        if (_XBEE_CAT1_LTE_Config.resetPin != ATMO_GPIO_NO_PIN)\n        {\n            ATMO_PLATFORM_DebugPrint(\"Resetting XBEE\\r\\n\");\n            ATMO_GPIO_SetPinState(_XBEE_CAT1_LTE_Config.gpioInstance, _XBEE_CAT1_LTE_Config.resetPin, ATMO_GPIO_PinState_Low);\n            ATMO_PLATFORM_DelayMilliseconds(500);\n            ATMO_GPIO_SetPinState(_XBEE_CAT1_LTE_Config.gpioInstance, _XBEE_CAT1_LTE_Config.resetPin, ATMO_GPIO_PinState_High);\n            ATMO_PLATFORM_DelayMilliseconds(500);\n        }\n\n        if (XBEE_CAT1_LTE_EnterCommandMode())\n        {\n            ATMO_PLATFORM_DebugPrint(\"Baud Found! Changing to 9600\\r\\n\");\n            XBEE_CAT1_LTE_SendAtCommand(\"ATBD\", \"3\");\n            XBEE_CAT1_LTE_SendAtCommand(\"ATWR\", NULL); // write to NVM\n            XBEE_CAT1_LTE_SendAtCommand(\"ATGT\", \"2\");  // Set guard time lower\n            _XBEE_CAT1_GuardTimeMs = 2;\n            XBEE_CAT1_LTE_ExitCommandMode();\n\n            if (uartConfig.baudRate != ATMO_UART_BaudRate_9600)\n            {\n                uartConfig.baudRate = ATMO_UART_BaudRate_9600;\n                ATMO_UART_SetConfiguration(_XBEE_CAT1_LTE_Config.uartInstance, &uartConfig);\n            }\n            baudFound = true;\n            break;\n        }\n        else\n        {\n            currentBaudIndex++;\n        }\n    }\n\n    if (!baudFound)\n    {\n        ATMO_PLATFORM_DebugPrint(\"Autobaud failed\\r\\n\");\n    }\n\n    return baudFound;\n}\n\nATMO_BOOL_t XBEE_CAT1_LTE_Init(XBEE_CAT1_LTE_Config_t *config, ATMO_DriverInstanceHandle_t *cellularInstance, ATMO_DriverInstanceHandle_t *cloudInstance)\n{\n    // ATMO_INTERVAL_AddCallbackInterval(0, _XBEE_CAT1_LTE_TimeKeeper, 1000, NULL);\n    memcpy(&_XBEE_CAT1_LTE_Config, config, sizeof(_XBEE_CAT1_LTE_Config));\n\n    ATMO_PLATFORM_DebugPrint(\"Initializing XBEE\\r\\n\");\n\n    ATMO_UART_Peripheral_t uartConfig;\n    ATMO_UART_GetDefaultConfig(&uartConfig);\n    uartConfig.baudRate = ATMO_UART_BaudRate_9600;\n    uartConfig.rxBuffer = false;\n    uartConfig.isBinaryData = false;\n    uartConfig.rxTrim = false;\n    uartConfig.customBuffer = (uint8_t *)_XBEE_CAT1_RespBuf;\n    uartConfig.customBufferSize = XBEE_CAT1_HTTP_BUF_SIZE * sizeof(char);\n    strcpy(uartConfig.splitRegex, \".*\\r\");\n\n    if(ATMO_UART_Init(config->uartInstance) != ATMO_UART_Status_Success)\n    {\n        return false;\n    }\n\n    if(ATMO_UART_SetConfiguration(config->uartInstance, &uartConfig) != ATMO_UART_Status_Success)\n    {\n        return false;\n    }\n\n    if (_XBEE_CAT1_LTE_Config.resetPin != ATMO_GPIO_NO_PIN)\n    {\n        ATMO_GPIO_Config_t gpioConf;\n        gpioConf.initialState = ATMO_GPIO_PinState_High;\n        gpioConf.pinMode = ATMO_GPIO_PinMode_Output_PushPull;\n        ATMO_GPIO_SetPinConfiguration(_XBEE_CAT1_LTE_Config.gpioInstance, _XBEE_CAT1_LTE_Config.resetPin, &gpioConf);\n    }\n\n    ATMO_PLATFORM_DebugPrint(\"Attempting autobaud...\\r\\n\");\n    \n    if(!XBEE_CAT1_LTE_AutoBaud())\n    {\n        return false;\n    }\n\n    ATMO_DriverInstanceHandle_t tcpClientInstance = 0;\n    if(XBEE_CAT1_LTE_TCP_CLIENT_AddDriverInstance(&tcpClientInstance) != ATMO_Status_Success)\n    {\n        return false;\n    }\n\n    if(ATMO_TCP_CLIENT_Init(tcpClientInstance) != ATMO_TCP_CLIENT_Status_Success)\n    {\n        return false;\n    }\n\n    if(ATMO_HTTP_Init(tcpClientInstance, (uint8_t *)_XBEE_CAT1_HttpPacketBuf, ATMO_HTTP_DEFAULT_PACKETBUF_SIZE * sizeof(char), &_XBEE_CAT1_HTTPInstance) != ATMO_HTTP_Status_Success)\n    {\n        return false;\n    }\n\n    if(XBEE_CAT1_LTE_CELLULAR_AddDriverInstance(cellularInstance) != ATMO_CELLULAR_Status_Success)\n    {\n        return false;\n    }\n    \n    if(ATMO_CELLULAR_Init(*cellularInstance) != ATMO_CELLULAR_Status_Success)\n    {\n        return false;\n    }\n\n    if(ATMO_CLOUD_TCP_AddDriverInstanceByType(cloudInstance, *cellularInstance, ATMO_DRIVERTYPE_CELLULAR, _XBEE_CAT1_HTTPInstance, ATMO_DRIVERINSTANCE_DEFAULT, ATMO_DRIVERINSTANCE_DEFAULT) != ATMO_CLOUD_Status_Success)\n    {\n        return false;\n    }\n\n    if(ATMO_CLOUD_Init(*cloudInstance, false) != ATMO_CLOUD_Status_Success)\n    {\n        return false;\n    }\n\n    ATMO_PLATFORM_DebugPrint(\"XBEE Init complete\\r\\n\");\n\n    ATMO_AddTickCallback(_XBEE_CAT1_LTE_CheckForResponse);\n\n    return true;\n}\n\nATMO_BOOL_t XBEE_CAT1_LTE_SendSMS(ATMO_Value_t *data)\n{\n    if (_XBEE_CAT1_Busy == true)\n    {\n        ATMO_PLATFORM_DebugPrint(\"Client busy...\\r\\n\");\n        return false;\n    }\n\n    ATMO_TCP_CLIENT_ConnectionStatus_t connStatus; \n    if( _XBEE_CAT1_LTE_TCP_CLIENT_GetConnectionStatus(NULL, &connStatus) != ATMO_TCP_CLIENT_Status_Success || connStatus != ATMO_TCP_CLIENT_Connected)\n    {\n        ATMO_PLATFORM_DebugPrint(\"Not connected: %d\\r\\n\", connStatus);\n        _XBEE_CAT1_Busy = false;\n        return false;\n    }\n\n    _XBEE_CAT1_Busy = true;\n\n    if (!XBEE_CAT1_LTE_EnterCommandMode())\n    {\n        _XBEE_CAT1_Busy = false;\n        return false;\n    }\n\n    // Set IP mode to \"SMS\"\n    if (!XBEE_CAT1_LTE_SendAtCommand(\"ATIP\", \"2\"))\n    {\n        _XBEE_CAT1_Busy = false;\n        return false;\n    }   \n\n    // Set destination phone number\n    if (!XBEE_CAT1_LTE_SendAtCommand(\"ATP#\", _XBEE_CAT1_LTE_Config.phoneNumber))\n    {\n        _XBEE_CAT1_Busy = false;\n        return false;\n    }  \n\n    if (!XBEE_CAT1_LTE_ExitCommandMode())\n    {\n        _XBEE_CAT1_Busy = false;\n        return false;\n    }\n\n    ATMO_Value_t strValue;\n    ATMO_InitValue(&strValue);\n    ATMO_CreateValueConverted(&strValue, ATMO_DATATYPE_STRING, data);\n\n    // Send data\n    ATMO_UART_WriteStringBlocking(_XBEE_CAT1_LTE_Config.uartInstance, (const char *)strValue.data);\n\n    ATMO_FreeValue(&strValue);\n\n    _XBEE_CAT1_Busy = false;\n    return true;\n}\n\nATMO_Status_t XBEE_CAT1_LTE_TCP_CLIENT_AddDriverInstance(ATMO_DriverInstanceHandle_t *instanceNumber)\n{\n    static ATMO_DriverInstanceData_t xbeeTcpClientDriverInstanceData;\n\n    xbeeTcpClientDriverInstanceData.name = \"\";\n    xbeeTcpClientDriverInstanceData.initialized = false;\n    xbeeTcpClientDriverInstanceData.instanceNumber = 0;\n\n    return ATMO_TCP_CLIENT_AddDriverInstance(&xbeeTcpClientDriverInstance, &xbeeTcpClientDriverInstanceData, instanceNumber);\n}\n\nATMO_TCP_CLIENT_Status_t XBEE_CAT1_LTE_TCP_CLIENT_Init(ATMO_DriverInstanceData_t *instance)\n{\n    return ATMO_TCP_CLIENT_Status_Success;\n}\n\nATMO_TCP_CLIENT_Status_t XBEE_CAT1_LTE_TCP_CLIENT_DeInit(ATMO_DriverInstanceData_t *instance)\n{\n    return ATMO_TCP_CLIENT_Status_Success;\n}\n\nATMO_TCP_CLIENT_Status_t XBEE_CAT1_LTE_TCP_CLIENT_SetConfiguration(ATMO_DriverInstanceData_t *instance, const ATMO_TCP_CLIENT_Config_t *config)\n{\n    return ATMO_TCP_CLIENT_Status_Success;\n}\n\nATMO_TCP_CLIENT_Status_t XBEE_CAT1_LTE_TCP_CLIENT_GetConnectionStatus(ATMO_DriverInstanceData_t *instance, ATMO_TCP_CLIENT_ConnectionStatus_t *status)\n{\n    _XBEE_CAT1_LTE_TCP_CLIENT_GetConnectionStatus(instance, status);\n    return ATMO_TCP_CLIENT_Status_Success;\n}\n\nATMO_TCP_CLIENT_Status_t XBEE_CAT1_LTE_TCP_CLIENT_Connect(ATMO_DriverInstanceData_t *instance, const char *host, unsigned int port, ATMO_BOOL_t useSSL)\n{\n    if (_XBEE_CAT1_Busy == true)\n    {\n        ATMO_PLATFORM_DebugPrint(\"Client busy...\\r\\n\");\n        return ATMO_TCP_CLIENT_Status_Fail;\n    }\n    _XBEE_CAT1_Busy = true;\n    if (!XBEE_CAT1_LTE_EnterCommandMode())\n    {\n        _XBEE_CAT1_Busy = false;\n        return ATMO_TCP_CLIENT_Status_Fail;\n    }\n\n    // Set the host\n    if (!XBEE_CAT1_LTE_SendAtCommand(\"ATDL\", host))\n    {\n        _XBEE_CAT1_Busy = false;\n        return ATMO_TCP_CLIENT_Status_Fail;\n    }\n\n    // Set the port\n    char portStr[32];\n    sprintf(portStr, \"%X\", port);\n\n    if (!XBEE_CAT1_LTE_SendAtCommand(\"ATDE\", portStr))\n    {\n        _XBEE_CAT1_Busy = false;\n        return ATMO_TCP_CLIENT_Status_Fail;\n    }\n\n    char ipProtoStr[2] = {0};\n    if (useSSL)\n    {\n        ipProtoStr[0] = '4';\n    }\n    else\n    {\n        ipProtoStr[0] = '1';\n    }\n\n    if (!XBEE_CAT1_LTE_SendAtCommand(\"ATIP\", ipProtoStr))\n    {\n        _XBEE_CAT1_Busy = false;\n        return ATMO_TCP_CLIENT_Status_Fail;\n    }\n\n    if (!XBEE_CAT1_LTE_ExitCommandMode())\n    {\n        _XBEE_CAT1_Busy = false;\n        return ATMO_TCP_CLIENT_Status_Fail;\n    }\n\n    _XBEE_CAT1_Busy = false;\n    return ATMO_TCP_CLIENT_Status_Success;\n}\n\nATMO_TCP_CLIENT_Status_t XBEE_CAT1_LTE_TCP_CLIENT_Disconnect(ATMO_DriverInstanceData_t *instance)\n{\n    return ATMO_TCP_CLIENT_Status_Success;\n}\n\nATMO_TCP_CLIENT_Status_t XBEE_CAT1_LTE_TCP_CLIENT_WriteBytes(ATMO_DriverInstanceData_t *instance, uint8_t *data, unsigned int dataLen)\n{\n    if (_XBEE_CAT1_Busy == true)\n    {\n        return ATMO_TCP_CLIENT_Status_Fail;\n    }\n\n    _XBEE_CAT1_Busy = true;\n    _XBEE_CAT1_LTE_Flush();\n\n    uint32_t nBytesSent = 0;\n    _XBEE_CAT1_TCP_CLIENT_NumBytesAvailable = 0;\n\n    if (ATMO_UART_WriteBlocking(_XBEE_CAT1_LTE_Config.uartInstance, (const char *)data, dataLen, &nBytesSent, 1000) != ATMO_UART_Status_Success)\n    {\n        return ATMO_TCP_CLIENT_Status_Fail;\n    }\n\n    if (nBytesSent != dataLen)\n    {\n        return ATMO_TCP_CLIENT_Status_Fail;\n    }\n\n    // Start receive process\n    _XBEE_CAT1_WaitingForResponse = true;\n\n    return ATMO_TCP_CLIENT_Status_Success;\n}\n\nATMO_TCP_CLIENT_Status_t XBEE_CAT1_LTE_TCP_CLIENT_SetReceiveCallback(ATMO_DriverInstanceData_t *instance, ATMO_Callback_t cb)\n{\n    _XBEE_CAT1_TCP_CLIENT_RxCB = cb;\n    return ATMO_TCP_CLIENT_Status_Success;\n}\n\nATMO_TCP_CLIENT_Status_t XBEE_CAT1_LTE_TCP_CLIENT_GetNumAvailableBytes(ATMO_DriverInstanceData_t *instance, uint32_t *numBytes, uint8_t **bytePtr)\n{\n    *numBytes = _XBEE_CAT1_TCP_CLIENT_NumBytesAvailable;\n    *bytePtr = (uint8_t *)_XBEE_CAT1_HttpPacketBuf;\n    return ATMO_TCP_CLIENT_Status_Success;\n}\n\nATMO_Status_t XBEE_CAT1_LTE_CELLULAR_AddDriverInstance(ATMO_DriverInstanceHandle_t *instanceNumber)\n{\n    static ATMO_DriverInstanceData_t xbeeCellularDriverInstanceData;\n\n    xbeeCellularDriverInstanceData.name = \"\";\n    xbeeCellularDriverInstanceData.initialized = false;\n    xbeeCellularDriverInstanceData.instanceNumber = 0;\n\n    return ATMO_CELLULAR_AddDriverInstance(&xbeeCellularDriverInstance, &xbeeCellularDriverInstanceData, instanceNumber);\n}\n\nATMO_CELLULAR_Status_t XBEE_CAT1_LTE_CELLULAR_Init(ATMO_DriverInstanceData_t *instance)\n{\n    return ATMO_CELLULAR_Status_Success;\n}\n\nATMO_CELLULAR_Status_t XBEE_CAT1_LTE_CELLULAR_DeInit(ATMO_DriverInstanceData_t *instance)\n{\n    return ATMO_CELLULAR_Status_Success;\n}\n\nATMO_CELLULAR_Status_t XBEE_CAT1_LTE_CELLULAR_GetConnectionStatus(ATMO_DriverInstanceData_t *instance, ATMO_CELLULAR_ConnectionStatus_t *status)\n{\n    ATMO_TCP_CLIENT_ConnectionStatus_t tcpStatus;\n\n    if (XBEE_CAT1_LTE_TCP_CLIENT_GetConnectionStatus(NULL, &tcpStatus) != ATMO_TCP_CLIENT_Status_Success)\n    {\n        return ATMO_CELLULAR_Status_Fail;\n    }\n\n    *status = (tcpStatus == ATMO_TCP_CLIENT_Connected) ? ATMO_CELLULAR_ConnectionStatus_Connected : ATMO_CELLULAR_ConnectionStatus_Disconnected;\n    return ATMO_CELLULAR_Status_Success;\n}"
+              }
+            }
+          },
+          "md5": "3b7e7f509a3b3bd2b1e74c753f5696db"
+        }
+      },
+      "drivers": {
+        "adc": [
+          {
+            "id": 0,
+            "name": "ATMO_DRIVERINSTANCE_ADC_ADC1"
+          }
+        ],
+        "ble": [],
+        "block": [
+          {
+            "id": 0,
+            "name": "ATMO_DRIVERINSTANCE_BLOCK_BLOCK1"
+          }
+        ],
+        "cellular": [
+          {
+            "name": "ATMO_DRIVERINSTANCE_CELLULAR_XbeeCat1Lte"
+          }
+        ],
+        "embeddedCloud": [
+          {
+            "name": "ATMO_DRIVERINSTANCE_EMBEDDEDCLOUD_XbeeCat1Lte"
+          }
+        ],
+        "datetime": [],
+        "filesytem": [
+          {
+            "id": 0,
+            "name": "ATMO_DRIVERINSTANCE_FILESYSTEM_FILESYSTEM1"
+          }
+        ],
+        "gpio": [
+          {
+            "id": 0,
+            "name": "ATMO_DRIVERINSTANCE_GPIO_GPIO1"
+          }
+        ],
+        "http": [],
+        "i2c": [
+          {
+            "id": 0,
+            "name": "ATMO_DRIVERINSTANCE_I2C_I2C1",
+            "primary": true
+          }
+        ],
+        "interval": [
+          {
+            "id": 0,
+            "name": "ATMO_DRIVERINSTANCE_INTERVAL_INTERVAL1"
+          }
+        ],
+        "nfc": [],
+        "pwm": [
+          {
+            "id": 0,
+            "name": "ATMO_DRIVERINSTANCE_PWM_PWM1"
+          }
+        ],
+        "spi": [
+          {
+            "id": 0,
+            "name": "ATMO_DRIVERINSTANCE_SPI_SPI1"
+          }
+        ],
+        "uart": [
+          {
+            "id": 0,
+            "name": "ATMO_DRIVERINSTANCE_UART_UART1"
+          },
+          {
+            "id": 1,
+            "name": "ATMO_DRIVERINSTANCE_UART_UART2"
+          }
+        ],
+        "wifi": []
+      },
+      "static": {
+        "header": "",
+        "footer": "",
+        "functions": {
+          "ATMO_Setup": {
+            "returnType": "void",
+            "code": "",
+            "arguments": []
+          }
+        }
+      }
+    },
+    "Application": {
+      "type": "app",
+      "compilerVersion": "latest",
+      "variants": [],
+      "meta": {
+        "appViewLayouts": {
+          "320": {
+            "560": true
+          }
+        }
+      },
+      "elements": [
+        {
+          "name": "AnalogMeter",
+          "type": "AppUIAnalogMeter",
+          "variants": [
+            "app",
+            "ui"
+          ],
+          "properties": {
+            "errorData": null,
+            "layouts": {
+              "320": {
+                "560": {
+                  "width": 100,
+                  "height": 100,
+                  "x": 0,
+                  "y": 0,
+                  "rotation": 0,
+                  "propertyOverlay": {}
+                }
+              }
+            },
+            "visible": true,
+            "value": 0,
+            "minValue": 0,
+            "maxValue": 100
+          },
+          "meta": {
+            "editorX": 141,
+            "editorY": 56,
+            "lastTrigger": "triggered"
+          },
+          "triggers": {
+            "triggered": []
+          }
+        },
+        {
+          "name": "Interval1",
+          "type": "AppInterval",
+          "variants": [
+            "app"
+          ],
+          "properties": {
+            "errorData": null,
+            "time": 1000,
+            "startOnInitialize": true
+          },
+          "meta": {
+            "editorX": 28,
+            "editorY": 53,
+            "lastTrigger": "interval"
+          },
+          "triggers": {
+            "triggered": [],
+            "interval": [
+              {
+                "mapping": {
+                  "value": {
+                    "code": "value"
+                  }
+                },
+                "targetOrder": [
+                  "value"
+                ],
+                "targetElement": "AnalogMeter",
+                "targetAbility": "setValue"
+              }
+            ],
+            "started": [],
+            "paused": []
+          }
+        }
+      ]
+    },
+    "Cloud": {
+      "type": "cloud",
+      "compilerVersion": "latest",
+      "variants": [],
+      "meta": {
+        "LocationDeviceDashboard": {
+          "dashboards": [
+            {
+              "type": "WidgetDashboard",
+              "name": "Dashboard",
+              "options": {},
+              "configuration": {
+                "widgets": [
+                  {
+                    "options": {
+                      "id": "MainContainer_bG9jYXRpb24_RGFzaGJvYXJk_ZDhkZGYxMzktYzY3NS03MTdhLTczMTMtZjgxY2M4N2IyYTNm"
+                    },
+                    "type": "WidgetDataGraph",
+                    "configuration": {
+                      "deviceUuid": "6ea44c82-0fae-455e-a68d-c94dc7ebf650",
+                      "storageName": "TempStorage",
+                      "xVariable": "_timestamp",
+                      "yVariables": [
+                        "value"
+                      ],
+                      "title": "TSYS01 Temperature",
+                      "yBounds": null,
+                      "dateRange": 600,
+                      "customRange": null
+                    }
+                  }
+                ],
+                "positions": [
+                  {
+                    "attr": "MainContainer_bG9jYXRpb24_RGFzaGJvYXJk_ZDhkZGYxMzktYzY3NS03MTdhLTczMTMtZjgxY2M4N2IyYTNm",
+                    "x": 0,
+                    "y": 0
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "elements": [
+        {
+          "name": "TempEvent",
+          "type": "CloudEvent",
+          "variants": [
+            "cloud"
+          ],
+          "properties": {
+            "errorData": {},
+            "value": null,
+            "code": {
+              "trigger": "\treturn ATMO_Status_Success;",
+              "setup": "\n    \n\t\n\treturn ATMO_Status_Success;\n    ",
+              "sendEvent": "\n    \n\tif( ATMO_CLOUD_SendEvent(ATMO_PROPERTY(TempEvent, instance), ATMO_ELEMENT_NAME(TempEvent), in, 100) != ATMO_CLOUD_Status_Success )\n    {  \n        return ATMO_Status_Fail;\n    }\n\n\treturn ATMO_Status_Success;\n\t"
+            },
+            "variables": {},
+            "embeddedPropertyConversions": {},
+            "codeUserChanged": {
+              "setup": false,
+              "sendEvent": false
+            },
+            "instance": "ATMO_DRIVERINSTANCE_EMBEDDEDCLOUD_XbeeCat1Lte"
+          },
+          "meta": {
+            "editorX": 100,
+            "editorY": 0,
+            "lastTrigger": "eventReceived"
+          },
+          "triggers": {
+            "triggered": [],
+            "eventReceived": [
+              {
+                "mapping": {
+                  "value": {
+                    "code": "value"
+                  }
+                },
+                "targetOrder": [
+                  "value"
+                ],
+                "targetElement": "TempStorage",
+                "targetAbility": "addData"
+              }
+            ]
+          },
+          "coupledElementName": "TempEvent",
+          "coupledElementPlaneName": "Arduino Mega"
+        },
+        {
+          "name": "TempStorage",
+          "type": "CloudStorage",
+          "variants": [
+            "cloud"
+          ],
+          "properties": {
+            "errorData": null,
+            "value": null
+          },
+          "meta": {
+            "editorX": 297,
+            "editorY": 0,
+            "lastTrigger": "dataAdded"
+          },
+          "triggers": {
+            "triggered": [],
+            "dataAdded": [],
+            "dataUpdated": [],
+            "dataRemoved": [],
+            "dataQueried": []
+          }
+        }
+      ],
+      "layout": {
+        "height": 1000,
+        "width": 1000,
+        "zIndexOrder": []
+      }
+    }
+  }
+}
