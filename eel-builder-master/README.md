@@ -5,7 +5,7 @@ This is designed to be a simple command line utility to help developers generate
 ## EEL Examples
 See the [examples](/examples) directory for annotated example EELs.
 
-There is a detailed walktrough creating a simple EEL [here](/examples/my_first_eel).
+There is a detailed walktrough creating a simple EEL [here](https://github.com/Digi-Key/DK-IoT-Studio/tree/master/eel-builder-master/examples/my_first_eel).
 
 ## General Usage
 
