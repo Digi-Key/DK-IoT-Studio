@@ -14,3 +14,5 @@ DK IoT Studio provides the fastest and simplest way to create, deploy, and manag
 * Use DK IoT Studio as a central console to monitor and manage your devices, data, and users
 
 * Integrate your data into a third-party application, data warehouse, or cloud platform
+
+Find out more at https://www.digikey.com/en/resources/design-tools/dk-iot-studio
