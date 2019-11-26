@@ -249,7 +249,7 @@ bool ATMO_RelayClick_Init(ATMO_RelayClick_Config_t *config)
     // Set the default configuration and state of Relay1
     ATMO_GPIO_Config_t gpioConfig;
     gpioConfig.pinMode = ATMO_GPIO_PinMode_Output_PushPull;
-    gpioConfig.pinState = ATMO_GPIO_PinState_Low;
+    gpioConfig.initialState = ATMO_GPIO_PinState_Low;
 
     return ATMO_GPIO_SetPinConfiguration(config->gpioDriverInstance, config->relay1Pin, &gpioConfig) == ATMO_GPIO_Status_Success;
 }
